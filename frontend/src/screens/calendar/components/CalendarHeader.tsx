@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Settings, ChevronLeft } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 interface CalendarHeaderProps {
   name: string;
@@ -40,25 +41,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   greeting: {
-    fontSize: 16,
-    color: '#636E72',
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   dateText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#2D3436',
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.text,
   },
   iconButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#F1F2F6',
+    padding: 10,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.card,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   monthSelector: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 4,
   },
 });

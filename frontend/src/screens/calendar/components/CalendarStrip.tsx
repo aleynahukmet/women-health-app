@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { format, isSameDay, isWithinInterval, parseISO } from 'date-fns';
+import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 interface CalendarStripProps {
   viewDate: Date;
@@ -70,16 +71,16 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
               onPress={() => onDatePress(day)}
               style={[
                 styles.calendarDay, 
-                isSelected && { backgroundColor: themeColor, borderColor: themeColor },
-                isPredictedPeriod && !isSelected && { borderColor: '#FF7675', borderWidth: 2, backgroundColor: '#FFF5F5' },
-                isLoggedPeriod && { backgroundColor: '#FF7675', borderColor: '#FF7675' },
+                isSelected && { backgroundColor: Colors.primary, borderColor: Colors.primary },
+                isPredictedPeriod && !isSelected && { borderColor: Colors.primary, borderWidth: 2, backgroundColor: Colors.background, borderStyle: 'dashed' },
+                isLoggedPeriod && { backgroundColor: Colors.primary, borderColor: Colors.primary, opacity: 0.8 },
               ]}
             >
               <Text style={[styles.dayName, (isSelected || isLoggedPeriod) && { color: '#FFF' }]}>{format(day, 'EEE')}</Text>
               <Text style={[styles.dayNum, (isSelected || isLoggedPeriod) && { color: '#FFF' }]}>{format(day, 'd')}</Text>
-              {isToday && !isSelected && !isLoggedPeriod && <View style={[styles.todayDot, { backgroundColor: themeColor }]} />}
+              {isToday && !isSelected && !isLoggedPeriod && <View style={[styles.todayDot, { backgroundColor: Colors.primary }]} />}
               {symptomHistory[format(day, 'yyyy-MM-dd')] && !isLoggedPeriod && !isSelected && (
-                <View style={[styles.logDot, { backgroundColor: themeColor }]} />
+                <View style={[styles.logDot, { backgroundColor: Colors.primary }]} />
               )}
             </TouchableOpacity>
           );
@@ -92,21 +93,23 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
 const styles = StyleSheet.create({
   calendarStrip: {
     paddingVertical: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F2F6',
+    borderBottomColor: Colors.border,
   },
   stripHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: Spacing.lg,
     marginBottom: 12,
   },
   stripMonthText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#2D3436',
+    fontWeight: '800',
+    color: Colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   calendarScroll: {
     paddingHorizontal: 16,
@@ -114,23 +117,24 @@ const styles = StyleSheet.create({
   calendarDay: {
     width: 50,
     height: 70,
-    borderRadius: 16,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 6,
     borderWidth: 1,
-    borderColor: '#F1F2F6',
-    backgroundColor: '#F8F9FA',
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
   },
   dayName: {
     fontSize: 12,
-    color: '#636E72',
+    color: Colors.textSecondary,
     marginBottom: 4,
+    fontWeight: '600',
   },
   dayNum: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#2D3436',
+    fontWeight: '800',
+    color: Colors.text,
   },
   todayDot: {
     width: 4,

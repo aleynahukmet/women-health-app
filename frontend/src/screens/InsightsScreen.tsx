@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthStore } from '../store/useHealthStore';
 import { useTranslation } from 'react-i18next';
 import { Lightbulb, TrendingUp, Fingerprint, Activity } from 'lucide-react-native';
+import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -19,11 +20,15 @@ export default function InsightsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#A29BFE" />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       </SafeAreaView>
     );
   }
+
+  const toTitleCase = (str: string) => {
+    return str.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -35,7 +40,7 @@ export default function InsightsScreen() {
         {/* Daily Insight Card */}
         <View style={styles.insightCard}>
           <View style={styles.insightHeader}>
-            <Lightbulb size={20} color="#FF9F43" />
+            <Lightbulb size={20} color={Colors.ovulation} />
             <Text style={styles.insightTag}>GAIA INSIGHT</Text>
           </View>
           <Text style={styles.insightText}>
@@ -47,7 +52,7 @@ export default function InsightsScreen() {
         {insights?.symptom_fingerprints?.map((fingerprint: any, index: number) => (
           <View key={index} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Fingerprint size={20} color="#A29BFE" />
+              <Fingerprint size={20} color={Colors.primary} />
               <Text style={styles.sectionTitle}>{fingerprint.title}</Text>
             </View>
             <View style={styles.fingerprintCard}>
@@ -69,7 +74,7 @@ export default function InsightsScreen() {
         {/* Phase Correlations */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Activity size={20} color="#FF7675" />
+            <Activity size={20} color={Colors.primary} />
             <Text style={styles.sectionTitle}>Phase Correlations</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
@@ -78,7 +83,7 @@ export default function InsightsScreen() {
                 <Text style={styles.phaseName}>{correlation.phase}</Text>
                 {correlation.top_symptoms.map((s: any, sIndex: number) => (
                   <View key={sIndex} style={styles.miniSymptom}>
-                    <Text style={styles.miniSymptomLabel}>{s.id.replace("_", " ").title()}</Text>
+                    <Text style={styles.miniSymptomLabel}>{toTitleCase(s.id)}</Text>
                     <Text style={styles.miniSymptomValue}>{s.percentage}%</Text>
                   </View>
                 ))}
@@ -89,7 +94,7 @@ export default function InsightsScreen() {
 
         {/* Coming Soon / More Insights */}
         <View style={styles.infoBox}>
-          <TrendingUp size={20} color="#636E72" />
+          <TrendingUp size={20} color={Colors.textSecondary} />
           <Text style={styles.infoBoxText}>
             More insights like Symptom-Symptom Pairing and Proactive Warnings are coming soon as you log more data!
           </Text>
@@ -99,15 +104,11 @@ export default function InsightsScreen() {
   );
 }
 
-// Helper for title case
-String.prototype.title = function() {
-  return this.charAt(0).toUpperCase() + this.slice(1);
-};
-
+// Helper for title case removed from prototype
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDFCFB',
+    backgroundColor: Colors.background,
   },
   center: {
     flex: 1,
@@ -115,25 +116,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   title: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#2D3436',
+    color: Colors.text,
   },
   scrollContent: {
-    padding: 24,
+    padding: Spacing.lg,
     paddingTop: 0,
   },
   insightCard: {
-    backgroundColor: '#FFF9F1',
-    borderRadius: 24,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
     padding: 20,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: '#FFEAA7',
+    borderColor: Colors.ovulation,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   insightHeader: {
     flexDirection: 'row',
@@ -143,14 +149,14 @@ const styles = StyleSheet.create({
   insightTag: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#FF9F43',
+    color: Colors.ovulation,
     marginLeft: 8,
     letterSpacing: 1,
   },
   insightText: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#2D3436',
+    color: Colors.text,
     fontStyle: 'italic',
   },
   section: {
@@ -164,14 +170,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2D3436',
+    color: Colors.text,
     marginLeft: 10,
   },
   fingerprintCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 24,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -188,35 +194,35 @@ const styles = StyleSheet.create({
   symptomLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2D3436',
+    color: Colors.text,
   },
   symptomPercentage: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#A29BFE',
+    color: Colors.primary,
   },
   progressBarContainer: {
     height: 8,
-    backgroundColor: '#F1F2F6',
+    backgroundColor: Colors.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#A29BFE',
+    backgroundColor: Colors.primary,
     borderRadius: 4,
   },
   horizontalScroll: {
-    marginHorizontal: -24,
-    paddingHorizontal: 24,
+    marginHorizontal: -Spacing.lg,
+    paddingHorizontal: Spacing.lg,
   },
   phaseCard: {
     width: width * 0.4,
-    backgroundColor: '#FFF',
-    borderRadius: 20,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
     padding: 16,
     marginRight: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -225,7 +231,7 @@ const styles = StyleSheet.create({
   phaseName: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#FF7675',
+    color: Colors.primary,
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -237,24 +243,26 @@ const styles = StyleSheet.create({
   },
   miniSymptomLabel: {
     fontSize: 12,
-    color: '#636E72',
+    color: Colors.textSecondary,
   },
   miniSymptomValue: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#2D3436',
+    color: Colors.text,
   },
   infoBox: {
     flexDirection: 'row',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.card,
     padding: 16,
-    borderRadius: 16,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   infoBoxText: {
     flex: 1,
     fontSize: 13,
-    color: '#636E72',
+    color: Colors.textSecondary,
     marginLeft: 12,
     lineHeight: 18,
   },

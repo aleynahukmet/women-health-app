@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 interface InsightCardProps {
   insight: { title: string; desc: string };
@@ -29,26 +30,29 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#2D3436',
+    fontWeight: '800',
+    color: Colors.text,
     marginBottom: 16,
   },
   insightCard: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 20,
-    padding: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#A29BFE',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: 24,
+    borderLeftWidth: 6,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   insightTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#2D3436',
+    fontSize: 18,
+    fontWeight: '800',
     marginBottom: 8,
   },
   insightDescription: {
-    fontSize: 14,
-    color: '#636E72',
-    lineHeight: 20,
+    fontSize: 15,
+    color: Colors.textSecondary,
+    lineHeight: 22,
   },
 });

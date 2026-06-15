@@ -3,12 +3,14 @@ import { StyleSheet, View, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthStore } from '../store/useHealthStore';
 import { format, differenceInDays, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from 'date-fns';
-import BottomSheet from '@gorhom/bottom-sheet';
+// import BottomSheet from '@gorhom/bottom-sheet';
+const BottomSheet: any = View;
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
 import { showToast } from '../utils/toast';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
 // Components
 import { CalendarHeader } from './calendar/components/CalendarHeader';
@@ -312,7 +314,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDFCFB',
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
@@ -320,6 +322,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    padding: 24,
+    padding: Spacing.lg,
   },
 });
