@@ -1,0 +1,256 @@
+import React, { forwardRef } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import { Check } from 'lucide-react-native';
+import { format } from 'date-fns';
+import * as Haptics from 'expo-haptics';
+import { SYMPTOM_CATEGORIES, SYMPTOMS_BY_CATEGORY } from '../constants';
+
+const { width } = Dimensions.get('window');
+
+interface SymptomBottomSheetProps {
+  selectedDate: Date;
+  activeCategory: string;
+  setActiveCategory: (category: string) => void;
+  currentLog: any;
+  onToggleSymptom: (categoryId: string, symptomId: any) => void;
+  onSave: () => void;
+  themeColor: string;
+  snapPoints: string[];
+}
+
+export const SymptomBottomSheet = forwardRef<BottomSheet, SymptomBottomSheetProps>(({
+  selectedDate,
+  activeCategory,
+  setActiveCategory,
+  currentLog,
+  onToggleSymptom,
+  onSave,
+  themeColor,
+  snapPoints,
+}, ref) => {
+  const renderBackdrop = (props: any) => (
+    <BottomSheetBackdrop
+      {...props}
+      disappearsOnIndex={-1}
+      appearsOnIndex={0}
+      opacity={0.5}
+    />
+  );
+
+  return (
+    <BottomSheet
+      ref={ref}
+      index={-1}
+      snapPoints={snapPoints}
+      enablePanDownToClose={true}
+      backdropComponent={renderBackdrop}
+    >
+      <BottomSheetView style={styles.sheetContent}>
+        <View style={styles.sheetHeader}>
+          <Text style={styles.sheetTitle}>{format(selectedDate, 'MMMM d, yyyy')}</Text>
+          <TouchableOpacity style={styles.doneBtn} onPress={onSave}>
+            <Text style={styles.doneBtnText}>Done</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Category Tabs */}
+        <View style={styles.categoryTabs}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {SYMPTOM_CATEGORIES.map((cat) => (
+              <TouchableOpacity 
+                key={cat.id}
+                style={[styles.categoryTab, activeCategory === cat.id && styles.categoryTabActive]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setActiveCategory(cat.id);
+                }}
+              >
+                <Text style={styles.categoryIcon}>{cat.icon}</Text>
+                <Text style={[styles.categoryLabel, activeCategory === cat.id && styles.categoryLabelActive]}>
+                  {cat.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <ScrollView style={styles.categoryContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.symptomGrid}>
+            {SYMPTOMS_BY_CATEGORY[activeCategory].map((item) => {
+              let isSelected = false;
+              let intensity = 0;
+
+              if (activeCategory === 'flow') {
+                isSelected = currentLog.flow_level === item.id;
+              } else if (activeCategory === 'pain') {
+                intensity = currentLog.pain_metrics[item.id] || 0;
+                isSelected = intensity > 0;
+              } else if (activeCategory === 'mood') {
+                isSelected = currentLog.mood_metrics.includes(item.id);
+              } else if (activeCategory === 'energy' || activeCategory === 'body') {
+                const val = currentLog.lifestyle_metrics[item.id];
+                if (typeof val === 'number') {
+                  intensity = val;
+                  isSelected = val > 0;
+                } else {
+                  isSelected = !!val;
+                }
+              } else if (activeCategory === 'sex') {
+                isSelected = !!currentLog.sex_logged[item.id];
+              }
+
+              return (
+                <TouchableOpacity 
+                  key={item.id}
+                  style={[
+                    styles.symptomCard, 
+                    isSelected && { borderColor: themeColor, backgroundColor: themeColor + '10' }
+                  ]}
+                  onPress={() => onToggleSymptom(activeCategory, item.id)}
+                >
+                  <Text style={styles.symptomCardIcon}>{item.icon}</Text>
+                  <Text style={styles.symptomCardLabel}>{item.label}</Text>
+                  {intensity > 0 && (
+                    <View style={styles.intensityDots}>
+                      {[1, 2, 3].map(dot => (
+                        <View 
+                          key={dot} 
+                          style={[
+                            styles.intensityDot, 
+                            { backgroundColor: dot <= intensity ? themeColor : '#E2E8F0' }
+                          ]} 
+                        />
+                      ))}
+                    </View>
+                  )}
+                  {isSelected && activeCategory !== 'pain' && intensity === 0 && (
+                    <View style={[styles.checkBadgeSmall, { backgroundColor: themeColor }]}>
+                      <Check size={10} color="#FFF" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </BottomSheetView>
+    </BottomSheet>
+  );
+});
+
+const styles = StyleSheet.create({
+  sheetContent: {
+    flex: 1,
+    padding: 24,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  sheetTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#2D3436',
+  },
+  doneBtn: {
+    backgroundColor: '#F1F2F6',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  doneBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2D3436',
+  },
+  categoryTabs: {
+    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F2F6',
+    paddingBottom: 12,
+  },
+  categoryTab: {
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginRight: 8,
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  categoryTabActive: {
+    backgroundColor: '#FFF',
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  categoryIcon: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  categoryLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#636E72',
+  },
+  categoryLabelActive: {
+    color: '#2D3436',
+  },
+  categoryContent: {
+    flex: 1,
+  },
+  symptomGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+    marginBottom: 32,
+  },
+  symptomCard: {
+    width: (width - 64) / 3,
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#F8F9FA',
+    backgroundColor: '#F8F9FA',
+    margin: 4,
+    position: 'relative',
+  },
+  symptomCardIcon: {
+    fontSize: 28,
+    marginBottom: 8,
+  },
+  symptomCardLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#2D3436',
+    textAlign: 'center',
+  },
+  intensityDots: {
+    flexDirection: 'row',
+    marginTop: 8,
+  },
+  intensityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 2,
+  },
+  checkBadgeSmall: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
