@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Calendar as CalendarIcon, Plus, TrendingUp } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 interface QuickActionsProps {
   onLogSymptoms: () => void;
@@ -21,14 +22,14 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.actionButton} onPress={onLogSymptoms}>
-          <View style={[styles.actionIcon, { backgroundColor: '#FF7675' }]}>
+          <View style={[styles.actionIcon, { backgroundColor: Colors.primary }]}>
             <Plus size={24} color="#FFF" />
           </View>
           <Text style={styles.actionLabel}>{t('dashboard.log_symptoms')}</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.actionButton} onPress={onViewInsights}>
-          <View style={[styles.actionIcon, { backgroundColor: '#A29BFE' }]}>
+          <View style={[styles.actionIcon, { backgroundColor: Colors.luteal }]}>
             <TrendingUp size={24} color="#FFF" />
           </View>
           <Text style={styles.actionLabel}>Insights</Text>
@@ -44,8 +45,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#2D3436',
+    fontWeight: '800',
+    color: Colors.text,
     marginBottom: 16,
   },
   actionRow: {
@@ -53,28 +54,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   actionButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 16,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: 20,
     width: '48%',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
     elevation: 2,
   },
   actionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
   actionLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2D3436',
+    fontWeight: '700',
+    color: Colors.text,
   },
 });

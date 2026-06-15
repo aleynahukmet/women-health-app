@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey, DateTime, JSON
-from sqlalchemy.dialects.postgresql import UUID
+from app.models.utils import GUID
 from datetime import datetime
 from app.db.session import Base
 
@@ -7,7 +7,7 @@ class HealthProfile(Base):
     __tablename__ = "health_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_uuid = Column(UUID(as_uuid=True), unique=True, index=True, nullable=False)
+    user_uuid = Column(GUID, unique=True, index=True, nullable=False)
     
     # Core Profile Data (Separated from Auth)
     name = Column(String, nullable=True)
@@ -28,7 +28,7 @@ class CycleLog(Base):
     __tablename__ = "cycle_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_uuid = Column(UUID(as_uuid=True), index=True, nullable=False)
+    user_uuid = Column(GUID, index=True, nullable=False)
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)
     intensity = Column(String, nullable=True) # light, medium, heavy
@@ -39,7 +39,7 @@ class SymptomLog(Base):
     __tablename__ = "symptom_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_uuid = Column(UUID(as_uuid=True), index=True, nullable=False)
+    user_uuid = Column(GUID, index=True, nullable=False)
     log_date = Column(Date, nullable=False, index=True)
     
     flow_level = Column(Integer, default=0) # 0=None, 1=Spotting, 2=Light, 3=Medium, 4=Heavy

@@ -9,7 +9,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.women-health-app"
     },
     "android": {
       "adaptiveIcon": {

@@ -7,15 +7,25 @@ import { showToast } from '../utils/toast';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useTranslation } from 'react-i18next';
+import Constants from 'expo-constants';
 
-// Google Sign-In configuration (Boilerplate)
-// In a real app, you would call this in your entry file
-GoogleSignin.configure({
-  webClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
-  iosClientId: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
-});
+// Google Sign-In initialization
+let GoogleSignin: any = null;
+if (Constants.appOwnership !== 'expo') {
+  try {
+    const GoogleSigninModule = require('@react-native-google-signin/google-signin');
+    GoogleSignin = GoogleSigninModule.GoogleSignin;
+    GoogleSignin.configure({
+      webClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+      iosClientId: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
+    });
+  } catch (e) {
+    console.log('GoogleSignin module not found or failed to configure');
+  }
+}
+
+import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
 type WelcomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Welcome'>;
@@ -94,6 +104,14 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   };
 
   const handleGoogleLogin = async () => {
+    // If running in Expo Go, use mock login since native Google Sign-In isn't supported
+    if (Constants.appOwnership === 'expo' || !GoogleSignin) {
+      console.log('Running in Expo Go or GoogleSignin not available - switching to mock Google login');
+      setSocialType('google');
+      setShowSocialPicker(true);
+      return;
+    }
+
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
@@ -301,10 +319,10 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
   },
   scrollContent: {
-    padding: 24,
+    padding: Spacing.lg,
     flexGrow: 1,
   },
   header: {
@@ -313,13 +331,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: '800',
+    color: Colors.text,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#636E72',
+    color: Colors.textSecondary,
   },
   socialContainer: {
     width: '100%',
@@ -329,15 +347,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#FFF',
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
   },
   socialButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text,
     marginLeft: 12,
   },
   googleIconContainer: {
@@ -359,12 +377,12 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.border,
   },
   dividerText: {
     marginHorizontal: 12,
     fontSize: 14,
-    color: '#B2BEC3',
+    color: Colors.textLight,
   },
   formContainer: {
     width: '100%',
@@ -372,7 +390,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#000',
+    color: Colors.text,
     marginBottom: 8,
   },
   labelRow: {
@@ -383,45 +401,45 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text,
   },
   input: {
     width: '100%',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     fontSize: 16,
-    color: '#2D3436',
-    backgroundColor: '#FFF',
+    color: Colors.text,
+    backgroundColor: Colors.card,
   },
   passwordWrapper: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#FFF',
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
   },
   passwordInput: {
     flex: 1,
     padding: 16,
     fontSize: 16,
-    color: '#2D3436',
+    color: Colors.text,
   },
   eyeIcon: {
     padding: 16,
   },
   primaryButton: {
-    backgroundColor: '#E71D1D', // Bright red from the image
+    backgroundColor: Colors.primary,
     padding: 18,
-    borderRadius: 12,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     marginTop: 24,
   },
   disabledButton: {
-    backgroundColor: '#B2BEC3',
+    backgroundColor: Colors.textLight,
   },
   primaryButtonText: {
     color: '#FFF',
@@ -430,7 +448,7 @@ const styles = StyleSheet.create({
   },
   termsText: {
     fontSize: 12,
-    color: '#000',
+    color: Colors.textSecondary,
     textAlign: 'center',
     marginTop: 20,
     lineHeight: 18,
@@ -447,10 +465,10 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: '#000',
+    color: Colors.text,
   },
   footerLink: {
-    color: '#E71D1D',
+    color: Colors.primary,
     fontWeight: '700',
   },
   modalOverlay: {
@@ -466,10 +484,10 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '85%',
-    backgroundColor: '#FFF',
-    borderRadius: 16,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -478,12 +496,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2D3436',
+    color: Colors.text,
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#636E72',
+    color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -492,13 +510,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F2F6',
+    borderBottomColor: Colors.border,
   },
   accountAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#A29BFE',
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -511,11 +529,11 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2D3436',
+    color: Colors.text,
   },
   accountEmail: {
     fontSize: 13,
-    color: '#636E72',
+    color: Colors.textSecondary,
   },
   useAnotherButton: {
     marginTop: 16,
@@ -533,7 +551,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#636E72',
+    color: Colors.textSecondary,
     fontWeight: '600',
     fontSize: 14,
   },

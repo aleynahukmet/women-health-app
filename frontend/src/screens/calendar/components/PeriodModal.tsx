@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { format, isSameDay, isWithinInterval, isAfter, isBefore, subMonths, addMonths } from 'date-fns';
+import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 interface PeriodModalProps {
   visible: boolean;
@@ -105,7 +106,7 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
                   <Text style={[
                     styles.modalDayText,
                     isInRange && styles.modalDayTextInRange,
-                    isToday && !isInRange && { color: themeColor, fontWeight: '800' }
+                    isToday && !isInRange && { color: Colors.primary, fontWeight: '800' }
                   ]}>
                     {format(day, 'd')}
                   </Text>
@@ -148,10 +149,10 @@ const styles = StyleSheet.create({
   },
   periodModalContent: {
     width: '90%',
-    backgroundColor: '#FFF',
-    borderRadius: 24,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
@@ -165,26 +166,28 @@ const styles = StyleSheet.create({
   },
   periodModalMonth: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#2D3436',
+    fontWeight: '800',
+    color: Colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   handleSelector: {
     flexDirection: 'row',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
     padding: 4,
     marginBottom: 20,
     alignItems: 'center',
   },
   handleBtn: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: BorderRadius.sm,
   },
   handleBtnActive: {
-    backgroundColor: '#FFF',
-    shadowColor: '#000',
+    backgroundColor: Colors.card,
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -193,15 +196,16 @@ const styles = StyleSheet.create({
   handleBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#636E72',
+    color: Colors.textSecondary,
   },
   handleBtnTextActive: {
-    color: '#FF7675',
+    color: Colors.primary,
+    fontWeight: '700',
   },
   handleDivider: {
     width: 1,
     height: 20,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.border,
   },
   modalGrid: {
     flexDirection: 'row',
@@ -216,29 +220,30 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   modalDayInRange: {
-    backgroundColor: '#FFF5F5',
+    backgroundColor: Colors.primary + '20', // Light green background
   },
   modalDayStart: {
-    backgroundColor: '#FF7675',
+    backgroundColor: Colors.primary,
     borderTopLeftRadius: 22,
     borderBottomLeftRadius: 22,
   },
   modalDayEnd: {
-    backgroundColor: '#FF7675',
+    backgroundColor: Colors.primary,
     borderTopRightRadius: 22,
     borderBottomRightRadius: 22,
   },
   modalDayText: {
     fontSize: 14,
-    color: '#2D3436',
+    color: Colors.text,
   },
   modalDayTextInRange: {
-    color: '#FF7675',
+    color: Colors.primary,
     fontWeight: '700',
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 12,
   },
   modalCancelBtn: {
     flex: 1,
@@ -246,18 +251,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCancelText: {
-    color: '#636E72',
+    color: Colors.textSecondary,
     fontWeight: '600',
   },
   modalSaveBtn: {
     flex: 2,
-    backgroundColor: '#2D3436',
+    backgroundColor: Colors.primary,
     padding: 16,
-    borderRadius: 16,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
   },
   modalSaveBtnDisabled: {
-    backgroundColor: '#B2BEC3',
+    backgroundColor: Colors.textLight,
+    opacity: 0.7,
   },
   modalSaveText: {
     color: '#FFF',

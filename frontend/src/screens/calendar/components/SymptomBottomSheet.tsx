@@ -1,10 +1,14 @@
 import React, { forwardRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+// import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+const BottomSheet = forwardRef(({ children }: any, ref: any) => <View>{children}</View>);
+const BottomSheetView = View;
+const BottomSheetBackdrop = () => null;
 import { Check } from 'lucide-react-native';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { SYMPTOM_CATEGORIES, SYMPTOMS_BY_CATEGORY } from '../constants';
+import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -105,7 +109,7 @@ export const SymptomBottomSheet = forwardRef<BottomSheet, SymptomBottomSheetProp
                   key={item.id}
                   style={[
                     styles.symptomCard, 
-                    isSelected && { borderColor: themeColor, backgroundColor: themeColor + '10' }
+                    isSelected && { borderColor: Colors.primary, backgroundColor: Colors.primary + '10' }
                   ]}
                   onPress={() => onToggleSymptom(activeCategory, item.id)}
                 >
@@ -118,14 +122,14 @@ export const SymptomBottomSheet = forwardRef<BottomSheet, SymptomBottomSheetProp
                           key={dot} 
                           style={[
                             styles.intensityDot, 
-                            { backgroundColor: dot <= intensity ? themeColor : '#E2E8F0' }
+                            { backgroundColor: dot <= intensity ? Colors.primary : Colors.border }
                           ]} 
                         />
                       ))}
                     </View>
                   )}
                   {isSelected && activeCategory !== 'pain' && intensity === 0 && (
-                    <View style={[styles.checkBadgeSmall, { backgroundColor: themeColor }]}>
+                    <View style={[styles.checkBadgeSmall, { backgroundColor: Colors.primary }]}>
                       <Check size={10} color="#FFF" />
                     </View>
                   )}
@@ -142,7 +146,8 @@ export const SymptomBottomSheet = forwardRef<BottomSheet, SymptomBottomSheetProp
 const styles = StyleSheet.create({
   sheetContent: {
     flex: 1,
-    padding: 24,
+    padding: Spacing.lg,
+    backgroundColor: Colors.card,
   },
   sheetHeader: {
     flexDirection: 'row',
@@ -151,41 +156,43 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sheetTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
-    color: '#2D3436',
+    color: Colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   doneBtn: {
-    backgroundColor: '#F1F2F6',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.md,
   },
   doneBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#2D3436',
+    color: '#FFF',
   },
   categoryTabs: {
     marginBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F2F6',
+    borderBottomColor: Colors.border,
     paddingBottom: 12,
   },
   categoryTab: {
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 16,
+    borderRadius: BorderRadius.md,
     marginRight: 8,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   categoryTabActive: {
-    backgroundColor: '#FFF',
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
+    backgroundColor: Colors.card,
+    borderColor: Colors.primary,
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -197,11 +204,13 @@ const styles = StyleSheet.create({
   },
   categoryLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#636E72',
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   categoryLabelActive: {
-    color: '#2D3436',
+    color: Colors.primary,
   },
   categoryContent: {
     flex: 1,
@@ -216,10 +225,10 @@ const styles = StyleSheet.create({
     width: (width - 64) / 3,
     alignItems: 'center',
     padding: 16,
-    borderRadius: 20,
+    borderRadius: BorderRadius.lg,
     borderWidth: 2,
-    borderColor: '#F8F9FA',
-    backgroundColor: '#F8F9FA',
+    borderColor: Colors.background,
+    backgroundColor: Colors.background,
     margin: 4,
     position: 'relative',
   },
@@ -229,8 +238,8 @@ const styles = StyleSheet.create({
   },
   symptomCardLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#2D3436',
+    fontWeight: '700',
+    color: Colors.text,
     textAlign: 'center',
   },
   intensityDots: {

@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Animated, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Animated, Dimensions, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Calendar, Target, ArrowRight } from 'lucide-react-native';
+import { ChevronLeft, Calendar, Target, ArrowRight, Droplets } from 'lucide-react-native';
 import { healthApi } from '../services/api';
 import { showToast } from '../utils/toast';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { useTranslation } from 'react-i18next';
+import { format } from 'date-fns';
+import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
 type OnboardingScreenProps = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
 
@@ -29,12 +31,15 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnimStep1 = useRef(new Animated.Value(1)).current;
   const fadeAnimStep2 = useRef(new Animated.Value(0)).current;
+  const fadeAnimStep3 = useRef(new Animated.Value(0)).current;
 
   const transitionToStep2 = () => {
     if (!data.dob || data.dob.length < 10) {
       showToast.error('Please enter a valid date of birth (DD/MM/YYYY)');
       return;
     }
+
+    Keyboard.dismiss();
 
     Animated.parallel([
       Animated.timing(slideAnim, {
@@ -55,6 +60,27 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
     ]).start(() => setStep(2));
   };
 
+  const transitionToStep3 = () => {
+    Keyboard.dismiss();
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -width * 2,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnimStep2, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnimStep3, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setStep(3));
+  };
+
   const backToStep1 = () => {
     Animated.parallel([
       Animated.timing(slideAnim, {
@@ -73,6 +99,26 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
         useNativeDriver: true,
       }),
     ]).start(() => setStep(1));
+  };
+
+  const backToStep2 = () => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -width,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnimStep2, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnimStep3, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setStep(2));
   };
 
   const formatToISO = (dateStr: string) => {
@@ -96,6 +142,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
   };
 
   const handleComplete = async () => {
+    Keyboard.dismiss();
     setLoading(true);
     try {
       const isoDob = formatToISO(data.dob);
@@ -104,11 +151,11 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
 
       // Update profile with all data (PII + Health)
       await healthApi.saveProfile({
-        name: data.email ? data.email.split('@')[0] : 'User', // Safety check for split
+        name: data.email ? data.email.split('@')[0] : 'User',
         age: age,
         date_of_birth: isoDob,
-        last_period_date: '2026-06-01', // Mock for now
-        average_cycle_length: 28,
+        last_period_date: data.lastPeriod ? formatToISO(data.lastPeriod) : format(new Date(), 'yyyy-MM-dd'),
+        average_cycle_length: parseInt(data.cycleLength),
         goal: data.goal,
       });
 
@@ -129,98 +176,135 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerNav}>
-        {step === 2 && (
-          <TouchableOpacity onPress={backToStep1} style={styles.backButton}>
-            <ChevronLeft size={24} color="#2D3436" />
-          </TouchableOpacity>
-        )}
-        <View style={styles.progressContainer}>
-          <View style={[styles.progressBar, { width: step === 1 ? '50%' : '100%' }]} />
-        </View>
-      </View>
-
-      <Animated.View 
-        style={[
-          styles.slideContainer, 
-          { transform: [{ translateX: slideAnim }] }
-        ]}
-      >
-        {/* Step 1: Age */}
-        <Animated.View style={[styles.stepWrapper, { opacity: fadeAnimStep1 }]}>
-          <View style={styles.iconCircle}>
-            <Calendar size={32} color="#A29BFE" />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flex: 1 }}>
+          <View style={styles.headerNav}>
+            {step > 1 && (
+              <TouchableOpacity onPress={step === 2 ? backToStep1 : backToStep2} style={styles.backButton}>
+                <ChevronLeft size={24} color={Colors.text} />
+              </TouchableOpacity>
+            )}
+            <View style={styles.progressContainer}>
+              <View style={[styles.progressBar, { width: `${(step / 3) * 100}%` }]} />
+            </View>
           </View>
-          <Text style={styles.stepTitle}>{t('onboarding.age_title')}</Text>
-          <Text style={styles.stepSubtitle}>
-            {t('onboarding.age_subtitle')}
-          </Text>
-          
-          <TextInput 
-            style={styles.dateInput}
-            placeholder="DD/MM/YYYY"
-            placeholderTextColor="#B2BEC3"
-            keyboardType="numeric"
-            value={data.dob}
-            onChangeText={(text) => handleDateChange(text, 'dob')}
-            maxLength={10}
-            autoFocus={true}
-          />
 
-          <TouchableOpacity 
-            style={[styles.nextButton, (!data.dob || data.dob.length < 10) && styles.disabledButton]} 
-            onPress={transitionToStep2}
+          <Animated.View 
+            style={[
+              styles.slideContainer, 
+              { transform: [{ translateX: slideAnim }] }
+            ]}
           >
-            <Text style={styles.nextButtonText}>{t('onboarding.continue')}</Text>
-            <ArrowRight size={20} color="#FFF" />
-          </TouchableOpacity>
-        </Animated.View>
+            {/* Step 1: Age */}
+            <Animated.View style={[styles.stepWrapper, { opacity: fadeAnimStep1 }]}>
+              <View style={styles.iconCircle}>
+                <Calendar size={32} color={Colors.primary} />
+              </View>
+              <Text style={styles.stepTitle}>{t('onboarding.age_title')}</Text>
+              <Text style={styles.stepSubtitle}>
+                {t('onboarding.age_subtitle')}
+              </Text>
+              
+              <TextInput 
+                style={styles.dateInput}
+                placeholder="DD/MM/YYYY"
+                placeholderTextColor={Colors.textLight}
+                keyboardType="numeric"
+                value={data.dob}
+                onChangeText={(text) => handleDateChange(text, 'dob')}
+                maxLength={10}
+                autoFocus={true}
+              />
 
-        {/* Step 2: Goal */}
-        <Animated.View style={[styles.stepWrapper, { opacity: fadeAnimStep2 }]}>
-          <View style={styles.iconCircle}>
-            <Target size={32} color="#A29BFE" />
-          </View>
-          <Text style={styles.stepTitle}>{t('onboarding.goal_title')}</Text>
-          <Text style={styles.stepSubtitle}>
-            {t('onboarding.goal_subtitle')}
-          </Text>
-          
-          <View style={styles.goalsList}>
-            {goals.map((goal) => (
               <TouchableOpacity 
-                key={goal.id}
-                style={[styles.goalCard, data.goal === goal.id && styles.selectedGoal]}
-                onPress={() => setData({ ...data, goal: goal.id })}
+                style={[styles.nextButton, (!data.dob || data.dob.length < 10) && styles.disabledButton]} 
+                onPress={transitionToStep2}
               >
-                <View style={styles.goalTextWrapper}>
-                  <Text style={[styles.goalLabel, data.goal === goal.id && styles.selectedGoalLabel]}>
-                    {goal.label}
-                  </Text>
-                  <Text style={styles.goalDescription}>{goal.description}</Text>
-                </View>
-                {data.goal === goal.id && (
-                  <View style={styles.checkCircle}>
-                    <View style={styles.checkInner} />
-                  </View>
+                <Text style={styles.nextButtonText}>{t('onboarding.continue')}</Text>
+                <ArrowRight size={20} color="#FFF" />
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Step 2: Goal */}
+            <Animated.View style={[styles.stepWrapper, { opacity: fadeAnimStep2 }]}>
+              <View style={styles.iconCircle}>
+                <Target size={32} color={Colors.primary} />
+              </View>
+              <Text style={styles.stepTitle}>{t('onboarding.goal_title')}</Text>
+              <Text style={styles.stepSubtitle}>
+                {t('onboarding.goal_subtitle')}
+              </Text>
+              
+              <View style={styles.goalsList}>
+                {goals.map((goal) => (
+                  <TouchableOpacity 
+                    key={goal.id}
+                    style={[styles.goalCard, data.goal === goal.id && styles.selectedGoal]}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      setData({ ...data, goal: goal.id });
+                    }}
+                  >
+                    <View style={styles.goalTextWrapper}>
+                      <Text style={[styles.goalLabel, data.goal === goal.id && styles.selectedGoalLabel]}>
+                        {goal.label}
+                      </Text>
+                      <Text style={styles.goalDescription}>{goal.description}</Text>
+                    </View>
+                    {data.goal === goal.id && (
+                      <View style={styles.checkCircle}>
+                        <View style={styles.checkInner} />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TouchableOpacity 
+                style={styles.nextButton} 
+                onPress={transitionToStep3}
+              >
+                <Text style={styles.nextButtonText}>{t('onboarding.continue')}</Text>
+                <ArrowRight size={20} color="#FFF" />
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Step 3: Cycle Length */}
+            <Animated.View style={[styles.stepWrapper, { opacity: fadeAnimStep3 }]}>
+              <View style={styles.iconCircle}>
+                <Droplets size={32} color={Colors.primary} />
+              </View>
+              <Text style={styles.stepTitle}>Cycle Details</Text>
+              <Text style={styles.stepSubtitle}>
+                What is your average cycle length? This helps us predict your next period.
+              </Text>
+              
+              <Text style={[styles.inputLabel, { marginTop: 20 }]}>Average Cycle Length (days)</Text>
+              <TextInput 
+                style={[styles.dateInput, { fontSize: 24, padding: 20, marginBottom: 40 }]}
+                placeholder="28"
+                placeholderTextColor={Colors.textLight}
+                keyboardType="numeric"
+                value={data.cycleLength}
+                onChangeText={(text) => setData({ ...data, cycleLength: text.replace(/\D/g, '') })}
+                maxLength={2}
+              />
+
+              <TouchableOpacity 
+                style={[styles.finishButton, loading && styles.disabledButton]} 
+                onPress={handleComplete}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.finishButtonText}>{t('onboarding.finish')}</Text>
                 )}
               </TouchableOpacity>
-            ))}
-          </View>
-
-          <TouchableOpacity 
-            style={[styles.finishButton, loading && styles.disabledButton]} 
-            onPress={handleComplete}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.finishButtonText}>{t('onboarding.finish')}</Text>
-            )}
-          </TouchableOpacity>
-        </Animated.View>
-      </Animated.View>
+            </Animated.View>
+          </Animated.View>
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -228,38 +312,38 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
   },
   headerNav: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: Spacing.lg,
     paddingTop: 20,
     height: 60,
   },
   backButton: {
-    marginRight: 16,
+    marginRight: Spacing.md,
   },
   progressContainer: {
     flex: 1,
     height: 6,
-    backgroundColor: '#F1F2F6',
+    backgroundColor: Colors.border,
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#A29BFE',
+    backgroundColor: Colors.primary,
     borderRadius: 3,
   },
   slideContainer: {
     flexDirection: 'row',
-    width: width * 2,
+    width: width * 3,
     flex: 1,
   },
   stepWrapper: {
     width: width,
-    padding: 24,
+    padding: Spacing.lg,
     paddingTop: 40,
     alignItems: 'center',
   },
@@ -267,45 +351,56 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#F8F7FF',
+    backgroundColor: Colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 32,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   stepTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#2D3436',
+    color: Colors.text,
     textAlign: 'center',
     marginBottom: 12,
   },
   stepSubtitle: {
     fontSize: 16,
-    color: '#636E72',
+    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 48,
     paddingHorizontal: 20,
   },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 8,
+  },
   dateInput: {
     width: '100%',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.card,
     padding: 20,
-    borderRadius: 16,
+    borderRadius: BorderRadius.lg,
     fontSize: 24,
     fontWeight: '700',
-    color: '#2D3436',
+    color: Colors.text,
     textAlign: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     marginBottom: 40,
   },
   nextButton: {
     flexDirection: 'row',
-    backgroundColor: '#A29BFE',
+    backgroundColor: Colors.primary,
     width: '100%',
     padding: 18,
-    borderRadius: 16,
+    borderRadius: BorderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -321,18 +416,18 @@ const styles = StyleSheet.create({
   },
   goalCard: {
     flexDirection: 'row',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.card,
     padding: 20,
-    borderRadius: 16,
+    borderRadius: BorderRadius.lg,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   selectedGoal: {
-    borderColor: '#A29BFE',
-    backgroundColor: '#F8F7FF',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.background,
   },
   goalTextWrapper: {
     flex: 1,
@@ -340,22 +435,22 @@ const styles = StyleSheet.create({
   goalLabel: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2D3436',
+    color: Colors.text,
     marginBottom: 4,
   },
   selectedGoalLabel: {
-    color: '#A29BFE',
+    color: Colors.primary,
   },
   goalDescription: {
     fontSize: 14,
-    color: '#636E72',
+    color: Colors.textSecondary,
   },
   checkCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#A29BFE',
+    borderColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -363,13 +458,13 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#A29BFE',
+    backgroundColor: Colors.primary,
   },
   finishButton: {
-    backgroundColor: '#2D3436',
+    backgroundColor: Colors.primary,
     width: '100%',
     padding: 18,
-    borderRadius: 16,
+    borderRadius: BorderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -379,7 +474,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   disabledButton: {
-    backgroundColor: '#B2BEC3',
+    backgroundColor: Colors.textLight,
     opacity: 0.7,
   },
 });
