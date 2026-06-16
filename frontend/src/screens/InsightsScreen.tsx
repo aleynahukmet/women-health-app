@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthStore } from '../store/useHealthStore';
 import { useTranslation } from 'react-i18next';
 import { Lightbulb, TrendingUp, Fingerprint, Activity } from 'lucide-react-native';
+import { SymptomTrendChart } from './calendar/components/SymptomTrendChart';
 import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
 const { width } = Dimensions.get('window');
@@ -71,6 +72,34 @@ export default function InsightsScreen() {
           </View>
         ))}
 
+        {/* Symptom Trends Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <TrendingUp size={20} color={Colors.primary} />
+            <Text style={styles.sectionTitle}>Symptom Trends (Last 3 Months)</Text>
+          </View>
+          
+          <SymptomTrendChart 
+            title="Cramps Intensity" 
+            color={Colors.menstrual}
+            data={[
+              { label: 'April', value: 4 },
+              { label: 'May', value: 7 },
+              { label: 'June', value: 5 },
+            ]}
+          />
+
+          <SymptomTrendChart 
+            title="Mood Stability" 
+            color={Colors.follicular}
+            data={[
+              { label: 'April', value: 8 },
+              { label: 'May', value: 6 },
+              { label: 'June', value: 9 },
+            ]}
+          />
+        </View>
+
         {/* Phase Correlations */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -83,7 +112,9 @@ export default function InsightsScreen() {
                 <Text style={styles.phaseName}>{correlation.phase}</Text>
                 {correlation.top_symptoms.map((s: any, sIndex: number) => (
                   <View key={sIndex} style={styles.miniSymptom}>
-                    <Text style={styles.miniSymptomLabel}>{toTitleCase(s.id)}</Text>
+                    <Text style={styles.miniSymptomLabel}>
+                      {t(`symptoms.${s.id}`, { defaultValue: toTitleCase(s.id) })}
+                    </Text>
                     <Text style={styles.miniSymptomValue}>{s.percentage}%</Text>
                   </View>
                 ))}
@@ -236,7 +267,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  miniSymptom: {
+      miniSymptom: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 6,
@@ -244,6 +275,7 @@ const styles = StyleSheet.create({
   miniSymptomLabel: {
     fontSize: 12,
     color: Colors.textSecondary,
+    textTransform: 'capitalize',
   },
   miniSymptomValue: {
     fontSize: 12,

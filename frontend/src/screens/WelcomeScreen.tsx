@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image, ActivityIndicator, Animated } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image, ActivityIndicator, Animated, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Apple, Eye, EyeOff } from 'lucide-react-native';
 import { authApi } from '../services/api';
@@ -40,6 +40,8 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   const [loading, setLoading] = useState(false);
   const [showSocialPicker, setShowSocialPicker] = useState(false);
   const [socialType, setSocialType] = useState<'google' | 'apple' | null>(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [modalEmail, setModalEmail] = useState('');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
@@ -296,8 +298,8 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
             <TouchableOpacity 
               style={styles.useAnotherButton}
               onPress={() => {
-                const email = prompt('Enter your email:');
-                if (email) handleSocialLogin(email);
+                setShowSocialPicker(false);
+                setShowEmailModal(true);
               }}
             >
               <Text style={styles.useAnotherText}>Use another account</Text>
@@ -312,6 +314,59 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
           </View>
         </View>
       )}
+
+      <Modal
+        visible={showEmailModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowEmailModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowEmailModal(false)}
+        >
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Enter your email</Text>
+            <Text style={styles.modalSubtitle}>to continue with {socialType === 'google' ? 'Google' : 'Apple'}</Text>
+            
+            <TextInput
+              style={styles.input}
+              placeholder="jane@example.com"
+              placeholderTextColor="#B2BEC3"
+              value={modalEmail}
+              onChangeText={setModalEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoFocus={true}
+            />
+
+            <TouchableOpacity 
+              style={[styles.primaryButton, (!modalEmail || loading) && styles.disabledButton]} 
+              onPress={() => {
+                if (modalEmail) {
+                  setShowEmailModal(false);
+                  handleSocialLogin(modalEmail);
+                }
+              }}
+              disabled={!modalEmail || loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Continue</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.cancelButton}
+              onPress={() => setShowEmailModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }

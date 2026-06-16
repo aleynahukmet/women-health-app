@@ -48,6 +48,10 @@ const resources = {
         bloating: "Bloating",
         fatigue: "Fatigue",
         acne: "Acne",
+        tender_breasts: "Tender Breasts",
+        backache: "Backache",
+        nausea: "Nausea",
+        insomnia: "Insomnia",
       },
       flow: {
         none: "None",
@@ -107,6 +111,10 @@ const resources = {
         bloating: "Şişkinlik",
         fatigue: "Yorgunluk",
         acne: "Akne",
+        tender_breasts: "Göğüs Hassasiyeti",
+        backache: "Sırt Ağrısı",
+        nausea: "Mide Bulantısı",
+        insomnia: "Uykusuzluk",
       },
       flow: {
         none: "Yok",

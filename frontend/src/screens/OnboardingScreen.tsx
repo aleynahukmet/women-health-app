@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Animated, Dimensions, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Animated, Dimensions, Keyboard, TouchableWithoutFeedback, Platform, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Calendar, Target, ArrowRight, Droplets } from 'lucide-react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { healthApi } from '../services/api';
 import { showToast } from '../utils/toast';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { useTranslation } from 'react-i18next';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
 type OnboardingScreenProps = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
@@ -23,9 +24,10 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
     email: initialData?.email || '',
     dob: '', // DD/MM/YYYY
     goal: 'track',
-    lastPeriod: '', // DD/MM/YYYY
     cycleLength: '28',
   });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerField, setDatePickerField] = useState<'dob'>('dob');
 
   // Animation values
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -40,6 +42,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
     }
 
     Keyboard.dismiss();
+    setShowDatePicker(false);
 
     Animated.parallel([
       Animated.timing(slideAnim, {
@@ -62,6 +65,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
 
   const transitionToStep3 = () => {
     Keyboard.dismiss();
+    setShowDatePicker(false);
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: -width * 2,
@@ -82,6 +86,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
   };
 
   const backToStep1 = () => {
+    setShowDatePicker(false);
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: 0,
@@ -102,6 +107,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
   };
 
   const backToStep2 = () => {
+    setShowDatePicker(false);
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: -width,
@@ -129,20 +135,28 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
     return dateStr;
   };
 
-  const handleDateChange = (text: string, field: 'dob' | 'lastPeriod') => {
-    let cleaned = text.replace(/\D/g, '');
-    let formatted = cleaned;
-    if (cleaned.length > 2) {
-      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
     }
-    if (cleaned.length > 4) {
-      formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4, 8);
+    
+    if (selectedDate) {
+      const formatted = format(selectedDate, 'dd/MM/yyyy');
+      setData({ ...data, [datePickerField]: formatted });
     }
-    setData({ ...data, [field]: formatted.slice(0, 10) });
+  };
+
+  const openDatePicker = (field: 'dob') => {
+    setDatePickerField(field);
+    setShowDatePicker(true);
   };
 
   const handleComplete = async () => {
     Keyboard.dismiss();
+<<<<<<< HEAD
+=======
+    setShowDatePicker(false);
+>>>>>>> expo-v1
     setLoading(true);
     try {
       const isoDob = formatToISO(data.dob);
@@ -154,8 +168,8 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
         name: data.email ? data.email.split('@')[0] : 'User',
         age: age,
         date_of_birth: isoDob,
-        last_period_date: data.lastPeriod ? formatToISO(data.lastPeriod) : format(new Date(), 'yyyy-MM-dd'),
-        average_cycle_length: parseInt(data.cycleLength),
+        last_period_date: format(new Date(), 'yyyy-MM-dd'), // Default to today since we removed the input
+        average_cycle_length: parseInt(data.cycleLength) || 28,
         goal: data.goal,
       });
 
@@ -180,7 +194,13 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
         <View style={{ flex: 1 }}>
           <View style={styles.headerNav}>
             {step > 1 && (
-              <TouchableOpacity onPress={step === 2 ? backToStep1 : backToStep2} style={styles.backButton}>
+              <TouchableOpacity 
+                onPress={() => {
+                  if (step === 2) backToStep1();
+                  else if (step === 3) backToStep2();
+                }} 
+                style={styles.backButton}
+              >
                 <ChevronLeft size={24} color={Colors.text} />
               </TouchableOpacity>
             )}
@@ -192,7 +212,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
           <Animated.View 
             style={[
               styles.slideContainer, 
-              { transform: [{ translateX: slideAnim }] }
+              { transform: [{ translateX: slideAnim }], width: width * 3 }
             ]}
           >
             {/* Step 1: Age */}
@@ -205,16 +225,14 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
                 {t('onboarding.age_subtitle')}
               </Text>
               
-              <TextInput 
+              <TouchableOpacity 
                 style={styles.dateInput}
-                placeholder="DD/MM/YYYY"
-                placeholderTextColor={Colors.textLight}
-                keyboardType="numeric"
-                value={data.dob}
-                onChangeText={(text) => handleDateChange(text, 'dob')}
-                maxLength={10}
-                autoFocus={true}
-              />
+                onPress={() => openDatePicker('dob')}
+              >
+                <Text style={[styles.dateInputText, !data.dob && { color: Colors.textLight }]}>
+                  {data.dob || "DD/MM/YYYY"}
+                </Text>
+              </TouchableOpacity>
 
               <TouchableOpacity 
                 style={[styles.nextButton, (!data.dob || data.dob.length < 10) && styles.disabledButton]} 
@@ -303,6 +321,42 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
               </TouchableOpacity>
             </Animated.View>
           </Animated.View>
+
+          {showDatePicker && (
+            Platform.OS === 'ios' ? (
+              <Modal
+                visible={showDatePicker}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.pickerContainer}>
+                    <View style={styles.pickerHeader}>
+                      <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                        <Text style={styles.doneButtonText}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={data[datePickerField] ? parseISO(formatToISO(data[datePickerField])) : new Date()}
+                      mode="date"
+                      display="spinner"
+                      onChange={onDateChange}
+                      maximumDate={new Date()}
+                      textColor={Colors.text}
+                    />
+                  </View>
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={data[datePickerField] ? parseISO(formatToISO(data[datePickerField])) : new Date()}
+                mode="date"
+                display="default"
+                onChange={onDateChange}
+                maximumDate={new Date()}
+              />
+            )
+          )}
         </View>
       </TouchableWithoutFeedback>
     </SafeAreaView>
@@ -313,6 +367,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  pickerContainer: {
+    backgroundColor: Colors.card,
+    borderTopLeftRadius: BorderRadius.lg,
+    borderTopRightRadius: BorderRadius.lg,
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
+  pickerHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  doneButtonText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '700',
   },
   headerNav: {
     flexDirection: 'row',
@@ -387,13 +466,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
     padding: 20,
     borderRadius: BorderRadius.lg,
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
     marginBottom: 40,
+  },
+  dateInputText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
   },
   nextButton: {
     flexDirection: 'row',

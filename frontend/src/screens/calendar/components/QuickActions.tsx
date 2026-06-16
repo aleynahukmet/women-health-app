@@ -6,12 +6,14 @@ import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 interface QuickActionsProps {
   onLogSymptoms: () => void;
+  onLogPeriod: () => void;
   onViewCalendar?: () => void;
   onViewInsights?: () => void;
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({ 
   onLogSymptoms, 
+  onLogPeriod,
   onViewCalendar,
   onViewInsights
 }) => {
@@ -28,13 +30,23 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
           <Text style={styles.actionLabel}>{t('dashboard.log_symptoms')}</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.actionButton} onPress={onViewInsights}>
-          <View style={[styles.actionIcon, { backgroundColor: Colors.luteal }]}>
-            <TrendingUp size={24} color="#FFF" />
+        <TouchableOpacity style={styles.actionButton} onPress={onLogPeriod}>
+          <View style={[styles.actionIcon, { backgroundColor: Colors.menstrual }]}>
+            <CalendarIcon size={24} color="#FFF" />
           </View>
-          <Text style={styles.actionLabel}>Insights</Text>
+          <Text style={styles.actionLabel}>Log Period</Text>
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity 
+        style={[styles.actionButton, { width: '100%', marginTop: 16, flexDirection: 'row', padding: 16 }]} 
+        onPress={onViewInsights}
+      >
+        <View style={[styles.actionIcon, { backgroundColor: Colors.luteal, marginBottom: 0, marginRight: 16, width: 40, height: 40, borderRadius: 20 }]}>
+          <TrendingUp size={20} color="#FFF" />
+        </View>
+        <Text style={styles.actionLabel}>View Detailed Insights</Text>
+      </TouchableOpacity>
     </View>
   );
 };

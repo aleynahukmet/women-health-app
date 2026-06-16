@@ -107,12 +107,17 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     bottomSheetRef.current?.expand();
   }, []);
 
-  const handleDatePress = (day: Date) => {
+  const handleDateSelect = (day: Date) => {
     const normalizedDay = startOfDay(day);
     setSelectedDate(normalizedDay);
-    setModalStart(normalizedDay);
+    Haptics.selectionAsync();
+  };
+
+  const handleOpenPeriodModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setModalStart(selectedDate);
     setModalEnd(null);
-    setModalViewDate(normalizedDay);
+    setModalViewDate(selectedDate);
     setActiveHandle('end');
     setPeriodModalVisible(true);
   };
@@ -162,33 +167,67 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
 
   const handleToggleSymptom = (categoryId: string, symptomId: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const newLog = { ...currentLog };
-
-    if (categoryId === 'flow') {
-      newLog.flow_level = symptomId;
-    } else if (categoryId === 'pain') {
-      const currentLevel = newLog.pain_metrics[symptomId] || 0;
-      const nextLevel = (currentLevel + 1) % 4;
-      if (nextLevel === 0) delete newLog.pain_metrics[symptomId];
-      else newLog.pain_metrics[symptomId] = nextLevel;
-    } else if (categoryId === 'mood') {
-      const index = newLog.mood_metrics.indexOf(symptomId);
-      if (index >= 0) newLog.mood_metrics.splice(index, 1);
-      else newLog.mood_metrics.push(symptomId);
-    } else if (categoryId === 'energy' || categoryId === 'body') {
-      if (['deep_sleep', 'insomnia', 'exhausted', 'restless'].includes(symptomId)) {
-        const currentLevel = newLog.lifestyle_metrics[symptomId] || 0;
-        const nextLevel = (currentLevel + 1) % 4;
-        if (nextLevel === 0) delete newLog.lifestyle_metrics[symptomId];
-        else newLog.lifestyle_metrics[symptomId] = nextLevel;
-      } else {
-        newLog.lifestyle_metrics[symptomId] = !newLog.lifestyle_metrics[symptomId];
+    
+    setCurrentLog((prevLog: any) => {
+      switch (categoryId) {
+        case 'flow':
+          return { ...prevLog, flow_level: symptomId };
+          
+        case 'pain': {
+          const currentLevel = prevLog.pain_metrics[symptomId] || 0;
+          const nextLevel = (currentLevel + 1) % 4;
+          const newPainMetrics = { ...prevLog.pain_metrics };
+          
+          if (nextLevel === 0) {
+            delete newPainMetrics[symptomId];
+          } else {
+            newPainMetrics[symptomId] = nextLevel;
+          }
+          
+          return { ...prevLog, pain_metrics: newPainMetrics };
+        }
+          
+        case 'mood':
+          return {
+            ...prevLog,
+            mood_metrics: prevLog.mood_metrics.includes(symptomId)
+              ? prevLog.mood_metrics.filter((id: any) => id !== symptomId)
+              : [...prevLog.mood_metrics, symptomId]
+          };
+          
+        case 'energy':
+        case 'body': {
+          const isLevelMetric = ['deep_sleep', 'insomnia', 'exhausted', 'restless'].includes(symptomId);
+          const newLifestyleMetrics = { ...prevLog.lifestyle_metrics };
+          
+          if (isLevelMetric) {
+            const currentLevel = prevLog.lifestyle_metrics[symptomId] || 0;
+            const nextLevel = (currentLevel + 1) % 4;
+            if (nextLevel === 0) {
+              delete newLifestyleMetrics[symptomId];
+            } else {
+              newLifestyleMetrics[symptomId] = nextLevel;
+            }
+          } else {
+            newLifestyleMetrics[symptomId] = !prevLog.lifestyle_metrics[symptomId];
+          }
+          
+          return { ...prevLog, lifestyle_metrics: newLifestyleMetrics };
+        }
+          
+        case 'sex':
+          return {
+            ...prevLog,
+            sex_logged: {
+              ...prevLog.sex_logged,
+              [symptomId]: !prevLog.sex_logged[symptomId]
+            }
+          };
+          
+        default:
+          return prevLog;
       }
-    } else if (categoryId === 'sex') {
-      newLog.sex_logged[symptomId] = !newLog.sex_logged[symptomId];
-    }
-
-    setCurrentLog(newLog);
+    });
   };
 
   const handleSaveLog = async () => {
@@ -255,7 +294,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         cycleLogs={cycleLogs}
         symptomHistory={symptomHistory}
         themeColor={themeColor}
-        onDatePress={handleDatePress}
+        onDatePress={handleDateSelect}
         onPrevMonth={() => setViewDate(subMonths(viewDate, 1))}
         onNextMonth={() => setViewDate(addMonths(viewDate, 1))}
       />
@@ -287,6 +326,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
 
         <QuickActions 
           onLogSymptoms={handleOpenBottomSheet}
+          onLogPeriod={handleOpenPeriodModal}
           onViewInsights={() => navigation.navigate('Insights')}
         />
 

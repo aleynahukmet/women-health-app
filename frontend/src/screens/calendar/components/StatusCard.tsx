@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Info, AlertCircle, Zap } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { differenceInDays, parseISO, format } from 'date-fns';
-import { LiquidWave } from './LiquidWave';
+import { CycleRing } from './CycleRing';
 import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 interface StatusCardProps {
@@ -37,13 +37,13 @@ export const StatusCard: React.FC<StatusCardProps> = ({
       </View>
       
       <View style={styles.waveWrapper}>
-        <LiquidWave size={200} progress={progress} color={themeColor} />
-        <View style={styles.waveOverlay}>
-          <Text style={[styles.dayNumber, { color: Colors.text }]}>
-            {cycleDay}
-          </Text>
-          <Text style={styles.dayLabel}>{t('dashboard.cycle_day')}</Text>
-        </View>
+        <CycleRing 
+          size={220} 
+          progress={progress} 
+          themeColor={themeColor} 
+          currentPhase={currentPhase}
+          cycleDay={cycleDay}
+        />
       </View>
 
       <View style={styles.predictionContainer}>
@@ -113,15 +113,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   waveWrapper: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
     marginBottom: 24,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    overflow: 'hidden',
   },
   waveOverlay: {
     position: 'absolute',
