@@ -2,8 +2,9 @@ import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthStore } from '../store/useHealthStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useTranslation } from 'react-i18next';
-import { Lightbulb, TrendingUp, Fingerprint, Activity } from 'lucide-react-native';
+import { Lightbulb, TrendingUp, Fingerprint, Activity, BookOpen } from 'lucide-react-native';
 import { SymptomTrendChart } from './calendar/components/SymptomTrendChart';
 import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
@@ -11,7 +12,11 @@ const { width } = Dimensions.get('window');
 
 export default function InsightsScreen() {
   const { t } = useTranslation();
-  const { insights, loading, fetchInsights } = useHealthStore();
+  const { insights, loading, fetchInsights } = useHealthStore(useShallow((state) => ({
+    insights: state.insights,
+    loading: state.loading,
+    fetchInsights: state.fetchInsights,
+  })));
 
   useEffect(() => {
     fetchInsights();
@@ -38,6 +43,24 @@ export default function InsightsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Smart Cycle Comparison */}
+        {insights?.average_cycle_length && insights?.current_cycle_length && (
+          <View style={styles.comparisonCard}>
+            <TrendingUp size={24} color={Colors.primary} />
+            <View style={styles.comparisonTextWrapper}>
+              <Text style={styles.comparisonTitle}>Cycle Analysis</Text>
+              <Text style={styles.comparisonText}>
+                Your current cycle is{' '}
+                <Text style={{ fontWeight: '800', color: Colors.primary }}>
+                  {Math.abs(insights.current_cycle_length - insights.average_cycle_length)} days{' '}
+                  {insights.current_cycle_length > insights.average_cycle_length ? 'longer' : 'shorter'}
+                </Text>{' '}
+                than your average ({insights.average_cycle_length} days). This is normal variation!
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Daily Insight Card */}
         <View style={styles.insightCard}>
           <View style={styles.insightHeader}>
@@ -123,6 +146,22 @@ export default function InsightsScreen() {
           </ScrollView>
         </View>
 
+        {/* Recent Journal Entries */}
+        {insights?.recent_notes && insights.recent_notes.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <BookOpen size={20} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Recent Journal Entries</Text>
+            </View>
+            {insights.recent_notes.map((note: any, index: number) => (
+              <View key={index} style={[styles.journalCard, index > 0 && { marginTop: 12 }]}>
+                <Text style={styles.journalDate}>{note.date}</Text>
+                <Text style={styles.journalText}>"{note.text}"</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Coming Soon / More Insights */}
         <View style={styles.infoBox}>
           <TrendingUp size={20} color={Colors.textSecondary} />
@@ -158,6 +197,31 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.lg,
     paddingTop: 0,
+  },
+  comparisonCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.primary + '15',
+    padding: 20,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  comparisonTextWrapper: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  comparisonTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.primary,
+    marginBottom: 4,
+  },
+  comparisonText: {
+    fontSize: 14,
+    color: Colors.text,
+    lineHeight: 20,
   },
   insightCard: {
     backgroundColor: Colors.card,
@@ -281,6 +345,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: Colors.text,
+  },
+  journalCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.md,
+    padding: 16,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
+  },
+  journalDate: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  journalText: {
+    fontSize: 14,
+    color: Colors.text,
+    fontStyle: 'italic',
+    lineHeight: 20,
   },
   infoBox: {
     flexDirection: 'row',

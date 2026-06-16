@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   phaseText: {
-    color: '#FFFFFF',
+    color: Colors.card,
     fontWeight: '700',
     fontSize: 14,
     textTransform: 'uppercase',

@@ -153,10 +153,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
 
   const handleComplete = async () => {
     Keyboard.dismiss();
-<<<<<<< HEAD
-=======
     setShowDatePicker(false);
->>>>>>> expo-v1
     setLoading(true);
     try {
       const isoDob = formatToISO(data.dob);
@@ -239,7 +236,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
                 onPress={transitionToStep2}
               >
                 <Text style={styles.nextButtonText}>{t('onboarding.continue')}</Text>
-                <ArrowRight size={20} color="#FFF" />
+                <ArrowRight size={20} color={Colors.card} />
               </TouchableOpacity>
             </Animated.View>
 
@@ -283,7 +280,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
                 onPress={transitionToStep3}
               >
                 <Text style={styles.nextButtonText}>{t('onboarding.continue')}</Text>
-                <ArrowRight size={20} color="#FFF" />
+                <ArrowRight size={20} color={Colors.card} />
               </TouchableOpacity>
             </Animated.View>
 
@@ -314,7 +311,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
                 disabled={loading}
               >
                 {loading ? (
-                  <ActivityIndicator color="#FFF" />
+                  <ActivityIndicator color={Colors.card} />
                 ) : (
                   <Text style={styles.finishButtonText}>{t('onboarding.finish')}</Text>
                 )}
@@ -487,7 +484,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   nextButtonText: {
-    color: '#FFF',
+    color: Colors.card,
     fontSize: 18,
     fontWeight: '700',
     marginRight: 8,
@@ -551,7 +548,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   finishButtonText: {
-    color: '#FFF',
+    color: Colors.card,
     fontSize: 18,
     fontWeight: '700',
   },

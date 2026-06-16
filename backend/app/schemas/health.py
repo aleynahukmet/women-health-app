@@ -31,7 +31,8 @@ class SymptomLogBase(BaseModel):
     mood_metrics: List[str] = []
     lifestyle_metrics: Dict[str, Any] = {}
     sex_logged: Dict[str, Any] = {}
-
+    notes: Optional[str] = None
+    
 class SymptomLogCreate(SymptomLogBase):
     pass
 
@@ -101,3 +102,6 @@ class InsightsResponse(BaseModel):
     phase_correlations: List[PhaseCorrelation]
     symptom_fingerprints: List[SymptomFingerprint]
     daily_insight: str
+    recent_notes: List[Dict[str, Any]] = []
+    average_cycle_length: Optional[int] = None
+    current_cycle_length: Optional[int] = None

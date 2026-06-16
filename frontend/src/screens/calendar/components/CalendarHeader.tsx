@@ -26,11 +26,11 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         <Text style={styles.greeting}>{t('dashboard.greeting', { name: name || 'there' })}</Text>
         <TouchableOpacity onPress={onMonthPress} style={styles.monthSelector}>
           <Text style={styles.dateText}>{format(viewDate, 'MMMM yyyy')}</Text>
-          <ChevronLeft size={16} color="#2D3436" style={{ transform: [{ rotate: '-90deg' }], marginLeft: 4 }} />
+          <ChevronLeft size={16} color={Colors.text} style={{ transform: [{ rotate: '-90deg' }], marginLeft: 4 }} />
         </TouchableOpacity>
       </View>
       <TouchableOpacity style={styles.iconButton} onPress={onSettingsPress}>
-        <Settings size={24} color="#2D3436" />
+        <Settings size={24} color={Colors.text} />
       </TouchableOpacity>
     </View>
   );

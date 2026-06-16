@@ -1,20 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { format, isSameDay, isWithinInterval, isAfter, isBefore, subMonths, addMonths } from 'date-fns';
+import { Calendar } from 'react-native-calendars';
+import { format, isSameDay, addDays, eachDayOfInterval, parseISO } from 'date-fns';
 import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 interface PeriodModalProps {
   visible: boolean;
   onClose: () => void;
-  modalViewDate: Date;
-  onPrevMonth: () => void;
-  onNextMonth: () => void;
-  activeHandle: 'start' | 'end';
-  setActiveHandle: (handle: 'start' | 'end') => void;
   modalStart: Date | null;
   modalEnd: Date | null;
-  modalCalendarDays: Date[];
   onDatePress: (date: Date) => void;
   onSave: () => void;
   isLogging: boolean;
@@ -24,19 +18,64 @@ interface PeriodModalProps {
 export const PeriodModal: React.FC<PeriodModalProps> = ({
   visible,
   onClose,
-  modalViewDate,
-  onPrevMonth,
-  onNextMonth,
-  activeHandle,
-  setActiveHandle,
   modalStart,
   modalEnd,
-  modalCalendarDays,
   onDatePress,
   onSave,
   isLogging,
   themeColor,
 }) => {
+  const markedDates = useMemo(() => {
+    const marks: any = {};
+    
+    if (modalStart) {
+      const startStr = format(modalStart, 'yyyy-MM-dd');
+      
+      if (modalEnd) {
+        const endStr = format(modalEnd, 'yyyy-MM-dd');
+        
+        // If start and end are the same day
+        if (startStr === endStr) {
+          marks[startStr] = {
+            startingDay: true,
+            endingDay: true,
+            color: Colors.menstrual,
+            textColor: Colors.card
+          };
+        } else {
+          // Fill the range
+          const range = eachDayOfInterval({
+            start: modalStart,
+            end: modalEnd
+          });
+
+          range.forEach((day, index) => {
+            const dateStr = format(day, 'yyyy-MM-dd');
+            const isFirst = index === 0;
+            const isLast = index === range.length - 1;
+            
+            marks[dateStr] = {
+              startingDay: isFirst,
+              endingDay: isLast,
+              color: (isFirst || isLast) ? Colors.menstrual : Colors.menstrual + '40',
+              textColor: (isFirst || isLast) ? Colors.card : Colors.menstrual,
+            };
+          });
+        }
+      } else {
+        // Only start date selected
+        marks[startStr] = { 
+          startingDay: true, 
+          endingDay: true,
+          color: Colors.menstrual, 
+          textColor: Colors.card 
+        };
+      }
+    }
+    
+    return marks;
+  }, [modalStart, modalEnd]);
+
   return (
     <Modal
       animationType="fade"
@@ -46,74 +85,59 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
     >
       <View style={styles.modalOverlayCenter}>
         <View style={styles.periodModalContent}>
-          <View style={styles.periodModalHeader}>
-            <TouchableOpacity onPress={onPrevMonth}>
-              <ChevronLeft size={20} color="#636E72" />
-            </TouchableOpacity>
-            <Text style={styles.periodModalMonth}>{format(modalViewDate, 'MMMM yyyy')}</Text>
-            <TouchableOpacity onPress={onNextMonth}>
-              <ChevronRight size={20} color="#636E72" />
-            </TouchableOpacity>
+          <Text style={styles.periodModalTitle}>Log Period</Text>
+          <Text style={styles.periodModalSubtitle}>Select the start and end dates of your period.</Text>
+
+          <View style={styles.selectedDatesContainer}>
+            <View style={styles.dateInfo}>
+              <Text style={styles.dateLabel}>Start</Text>
+              <Text style={styles.dateValue}>
+                {modalStart ? format(modalStart, 'MMM d, yyyy') : 'Select date'}
+              </Text>
+            </View>
+            <View style={styles.dateSeparator} />
+            <View style={styles.dateInfo}>
+              <Text style={styles.dateLabel}>End</Text>
+              <Text style={styles.dateValue}>
+                {modalEnd ? format(modalEnd, 'MMM d, yyyy') : 'Select date'}
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.handleSelector}>
-            <TouchableOpacity 
-              style={[styles.handleBtn, activeHandle === 'start' && styles.handleBtnActive]}
-              onPress={() => setActiveHandle('start')}
-            >
-              <Text style={[styles.handleBtnText, activeHandle === 'start' && styles.handleBtnTextActive]}>
-                {modalStart ? format(modalStart, 'MMM d') : 'Start Date'}
-              </Text>
-            </TouchableOpacity>
-            <View style={styles.handleDivider} />
-            <TouchableOpacity 
-              style={[styles.handleBtn, activeHandle === 'end' && styles.handleBtnActive]}
-              onPress={() => setActiveHandle('end')}
-            >
-              <Text style={[styles.handleBtnText, activeHandle === 'end' && styles.handleBtnTextActive]}>
-                {modalEnd ? format(modalEnd, 'MMM d') : 'Select end date'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.modalGrid}>
-            {modalCalendarDays.map((day, index) => {
-              const isToday = isSameDay(day, new Date());
-              
-              let isInRange = false;
-              if (modalStart) {
-                if (modalEnd) {
-                  isInRange = isWithinInterval(day, { start: modalStart, end: modalEnd });
-                } else {
-                  isInRange = isSameDay(day, modalStart) || isAfter(day, modalStart);
+          <Calendar
+            markingType={'period'}
+            markedDates={markedDates}
+            onDayPress={(day: any) => {
+              onDatePress(new Date(day.timestamp));
+            }}
+            theme={{
+              calendarBackground: Colors.card,
+              textSectionTitleColor: Colors.textSecondary,
+              selectedDayBackgroundColor: Colors.menstrual,
+              selectedDayTextColor: Colors.card,
+              todayTextColor: Colors.menstrual,
+              dayTextColor: Colors.text,
+              textDisabledColor: Colors.textLight,
+              dotColor: Colors.menstrual,
+              selectedDotColor: Colors.card,
+              arrowColor: Colors.menstrual,
+              monthTextColor: Colors.text,
+              indicatorColor: Colors.menstrual,
+              textDayFontWeight: '500',
+              textMonthFontWeight: '700',
+              textDayHeaderFontWeight: '600',
+              textDayFontSize: 15,
+              textMonthFontSize: 18,
+              textDayHeaderFontSize: 13,
+              'stylesheet.calendar.header': {
+                week: {
+                  marginTop: 15,
+                  flexDirection: 'row',
+                  justifyContent: 'space-around'
                 }
               }
-
-              const isStart = modalStart && isSameDay(day, modalStart);
-              const isEnd = modalEnd && isSameDay(day, modalEnd);
-
-              return (
-                <TouchableOpacity 
-                  key={index}
-                  style={[
-                    styles.modalDay,
-                    isInRange && styles.modalDayInRange,
-                    isStart && styles.modalDayStart,
-                    isEnd && styles.modalDayEnd,
-                  ]}
-                  onPress={() => onDatePress(day)}
-                >
-                  <Text style={[
-                    styles.modalDayText,
-                    isInRange && styles.modalDayTextInRange,
-                    isToday && !isInRange && { color: Colors.primary, fontWeight: '800' }
-                  ]}>
-                    {format(day, 'd')}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+            }}
+          />
 
           <View style={styles.modalActions}>
             <TouchableOpacity 
@@ -128,7 +152,7 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
               disabled={!modalStart || !modalEnd || isLogging}
             >
               {isLogging ? (
-                <ActivityIndicator color="#FFF" />
+                <ActivityIndicator color={Colors.card} />
               ) : (
                 <Text style={styles.modalSaveText}>Save Period</Text>
               )}
@@ -158,92 +182,53 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
   },
-  periodModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  periodModalMonth: {
-    fontSize: 18,
+  periodModalTitle: {
+    fontSize: 20,
     fontWeight: '800',
     color: Colors.text,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    marginBottom: 4,
   },
-  handleSelector: {
+  periodModalSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: 20,
+  },
+  selectedDatesContainer: {
     flexDirection: 'row',
     backgroundColor: Colors.background,
     borderRadius: BorderRadius.md,
-    padding: 4,
+    padding: 16,
     marginBottom: 20,
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  handleBtn: {
+  dateInfo: {
     flex: 1,
-    paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: BorderRadius.sm,
   },
-  handleBtnActive: {
-    backgroundColor: Colors.card,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  handleBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
+  dateLabel: {
+    fontSize: 12,
     color: Colors.textSecondary,
-  },
-  handleBtnTextActive: {
-    color: Colors.primary,
-    fontWeight: '700',
-  },
-  handleDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: Colors.border,
-  },
-  modalGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 24,
-  },
-  modalDay: {
-    width: '14.28%',
-    height: 45,
-    alignItems: 'center',
-    justifyContent: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
     marginBottom: 4,
   },
-  modalDayInRange: {
-    backgroundColor: Colors.primary + '20', // Light green background
-  },
-  modalDayStart: {
-    backgroundColor: Colors.primary,
-    borderTopLeftRadius: 22,
-    borderBottomLeftRadius: 22,
-  },
-  modalDayEnd: {
-    backgroundColor: Colors.primary,
-    borderTopRightRadius: 22,
-    borderBottomRightRadius: 22,
-  },
-  modalDayText: {
-    fontSize: 14,
+  dateValue: {
+    fontSize: 15,
+    fontWeight: '700',
     color: Colors.text,
   },
-  modalDayTextInRange: {
-    color: Colors.primary,
-    fontWeight: '700',
+  dateSeparator: {
+    width: 1,
+    height: '60%',
+    backgroundColor: Colors.border,
+    marginHorizontal: 8,
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
+    marginTop: 24,
   },
   modalCancelBtn: {
     flex: 1,
@@ -256,7 +241,7 @@ const styles = StyleSheet.create({
   },
   modalSaveBtn: {
     flex: 2,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.menstrual,
     padding: 16,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
@@ -266,7 +251,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   modalSaveText: {
-    color: '#FFF',
+    color: Colors.card,
     fontWeight: '700',
   },
 });

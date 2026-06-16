@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Circle, G, Path } from 'react-native-svg';
+import Svg, { Circle, G } from 'react-native-svg';
+import { LiquidWave } from './LiquidWave';
 import { Colors } from '../../../theme/theme';
 
 interface CycleRingProps {
@@ -24,8 +25,20 @@ export const CycleRing: React.FC<CycleRingProps> = ({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - progress * circumference;
 
+  // Dynamic phase colors based on UX maturity suggestions
+  const getPhaseColor = (phase: string) => {
+    switch (phase.toLowerCase()) {
+      case 'follicular': return Colors.follicular;
+      case 'ovulatory': return Colors.ovulation;
+      case 'luteal': return Colors.luteal;
+      case 'menstrual': return Colors.menstrual;
+      default: return themeColor;
+    }
+  };
+
+  const activeColor = getPhaseColor(currentPhase);
+
   // Define phase segments (simplified for visualization)
-  // In a real app, these would come from predictions
   const segments = [
     { name: 'Menstrual', length: 0.2, color: Colors.menstrual },
     { name: 'Follicular', length: 0.3, color: Colors.follicular },
@@ -37,7 +50,16 @@ export const CycleRing: React.FC<CycleRingProps> = ({
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
-      <Svg width={size} height={size}>
+      {/* Liquid Wave Background for "Fullness" effect */}
+      <View style={styles.waveContainer}>
+        <LiquidWave 
+          size={size - strokeWidth * 2} 
+          progress={progress} 
+          color={activeColor} 
+        />
+      </View>
+
+      <Svg width={size} height={size} style={styles.svg}>
         <G rotation="-90" origin={`${center}, ${center}`}>
           {/* Background Ring */}
           <Circle
@@ -47,12 +69,11 @@ export const CycleRing: React.FC<CycleRingProps> = ({
             stroke={Colors.border}
             strokeWidth={strokeWidth}
             fill="none"
-            opacity={0.3}
+            opacity={0.2}
           />
           
           {/* Phase Segments */}
           {segments.map((segment, index) => {
-            const segmentOffset = circumference * (1 - segment.length);
             const rotation = currentOffset * 360;
             currentOffset += segment.length;
             
@@ -67,7 +88,7 @@ export const CycleRing: React.FC<CycleRingProps> = ({
                 strokeDasharray={`${circumference * segment.length} ${circumference}`}
                 fill="none"
                 transform={`rotate(${rotation}, ${center}, ${center})`}
-                opacity={0.5}
+                opacity={0.4}
               />
             );
           })}
@@ -77,7 +98,7 @@ export const CycleRing: React.FC<CycleRingProps> = ({
             cx={center}
             cy={center}
             r={radius}
-            stroke={themeColor}
+            stroke={activeColor}
             strokeWidth={strokeWidth + 2}
             strokeDasharray={`${circumference}`}
             strokeDashoffset={strokeDashoffset}
@@ -88,7 +109,7 @@ export const CycleRing: React.FC<CycleRingProps> = ({
       </Svg>
       
       <View style={styles.content}>
-        <Text style={styles.dayNumber}>{cycleDay}</Text>
+        <Text style={[styles.dayNumber, { color: Colors.text }]}>{cycleDay}</Text>
         <Text style={styles.dayLabel}>Day</Text>
       </View>
     </View>
@@ -99,16 +120,27 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  waveContainer: {
+    position: 'absolute',
+    zIndex: 1,
+  },
+  svg: {
+    zIndex: 2,
   },
   content: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 3,
   },
   dayNumber: {
     fontSize: 48,
     fontWeight: '800',
-    color: Colors.text,
+    textShadowColor: 'rgba(255, 255, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   dayLabel: {
     fontSize: 14,

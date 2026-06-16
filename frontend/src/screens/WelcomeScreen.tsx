@@ -186,7 +186,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
               style={[styles.socialButton, { marginTop: 12 }]}
               onPress={handleAppleLogin}
             >
-              <Apple size={20} color="#000" fill="#000" />
+              <Apple size={20} color={Colors.text} fill={Colors.text} />
               <Text style={styles.socialButtonText}>
                 {isSignUp ? t('welcome.apple') : t('welcome.apple')}
               </Text>
@@ -206,7 +206,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
             <TextInput
               style={styles.input}
               placeholder="jane@example.com"
-              placeholderTextColor="#B2BEC3"
+              placeholderTextColor={Colors.textLight}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -225,7 +225,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
               <TextInput
                 style={styles.passwordInput}
                 placeholder="Enter your password"
-                placeholderTextColor="#B2BEC3"
+                placeholderTextColor={Colors.textLight}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -234,7 +234,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
                 style={styles.eyeIcon} 
                 onPress={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff size={20} color="#636E72" /> : <Eye size={20} color="#636E72" />}
+                {showPassword ? <EyeOff size={20} color={Colors.textSecondary} /> : <Eye size={20} color={Colors.textSecondary} />}
               </TouchableOpacity>
             </View>
 
@@ -244,7 +244,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#FFF" />
+                <ActivityIndicator color={Colors.card} />
               ) : (
                 <Text style={styles.primaryButtonText}>{isSignUp ? t('welcome.signup_btn') : t('welcome.signin_btn')}</Text>
               )}
@@ -333,7 +333,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
             <TextInput
               style={styles.input}
               placeholder="jane@example.com"
-              placeholderTextColor="#B2BEC3"
+              placeholderTextColor={Colors.textLight}
               value={modalEmail}
               onChangeText={setModalEmail}
               autoCapitalize="none"
@@ -352,7 +352,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
               disabled={!modalEmail || loading}
             >
               {loading ? (
-                <ActivityIndicator color="#FFF" />
+                <ActivityIndicator color={Colors.card} />
               ) : (
                 <Text style={styles.primaryButtonText}>Continue</Text>
               )}
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.textLight,
   },
   primaryButtonText: {
-    color: '#FFF',
+    color: Colors.card,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   avatarText: {
-    color: '#FFF',
+    color: Colors.card,
     fontWeight: '700',
     fontSize: 18,
   },

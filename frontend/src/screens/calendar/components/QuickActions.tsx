@@ -25,14 +25,14 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.actionButton} onPress={onLogSymptoms}>
           <View style={[styles.actionIcon, { backgroundColor: Colors.primary }]}>
-            <Plus size={24} color="#FFF" />
+            <Plus size={24} color={Colors.card} />
           </View>
           <Text style={styles.actionLabel}>{t('dashboard.log_symptoms')}</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.actionButton} onPress={onLogPeriod}>
           <View style={[styles.actionIcon, { backgroundColor: Colors.menstrual }]}>
-            <CalendarIcon size={24} color="#FFF" />
+            <CalendarIcon size={24} color={Colors.card} />
           </View>
           <Text style={styles.actionLabel}>Log Period</Text>
         </TouchableOpacity>
@@ -43,7 +43,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         onPress={onViewInsights}
       >
         <View style={[styles.actionIcon, { backgroundColor: Colors.luteal, marginBottom: 0, marginRight: 16, width: 40, height: 40, borderRadius: 20 }]}>
-          <TrendingUp size={20} color="#FFF" />
+          <TrendingUp size={20} color={Colors.card} />
         </View>
         <Text style={styles.actionLabel}>View Detailed Insights</Text>
       </TouchableOpacity>

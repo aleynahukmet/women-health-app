@@ -2,12 +2,14 @@ import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { StyleSheet, View, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthStore } from '../store/useHealthStore';
+import { useShallow } from 'zustand/react/shallow';
 import { format, differenceInDays, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from 'date-fns';
 // import BottomSheet from '@gorhom/bottom-sheet';
 const BottomSheet: any = View;
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
 import { showToast } from '../utils/toast';
+import { registerForPushNotificationsAsync, schedulePeriodReminder } from '../utils/notifications';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { Colors, Spacing, BorderRadius } from '../theme/theme';
@@ -37,7 +39,19 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     fetchHistory,
     upsertSymptomLog,
     logCycle
-  } = useHealthStore();
+  } = useHealthStore(useShallow((state) => ({
+    profile: state.profile,
+    predictions: state.predictions,
+    cycleLogs: state.cycleLogs,
+    symptomHistory: state.symptomHistory,
+    loading: state.loading,
+    fetchProfile: state.fetchProfile,
+    fetchPredictions: state.fetchPredictions,
+    fetchCycleLogs: state.fetchCycleLogs,
+    fetchHistory: state.fetchHistory,
+    upsertSymptomLog: state.upsertSymptomLog,
+    logCycle: state.logCycle,
+  })));
 
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
   const [viewDate, setViewDate] = useState(startOfDay(new Date()));
@@ -56,10 +70,8 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
 
   // Period Logging Modal State
   const [periodModalVisible, setPeriodModalVisible] = useState(false);
-  const [modalViewDate, setModalViewDate] = useState(startOfDay(new Date()));
   const [modalStart, setModalStart] = useState<Date | null>(null);
   const [modalEnd, setModalEnd] = useState<Date | null>(null);
-  const [activeHandle, setActiveHandle] = useState<'start' | 'end'>('end');
 
   // Bottom Sheet Ref
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -70,10 +82,19 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     fetchPredictions();
     fetchCycleLogs();
     
+    // Setup notifications
+    registerForPushNotificationsAsync();
+
     const start = format(startOfMonth(viewDate), 'yyyy-MM-dd');
     const end = format(endOfMonth(viewDate), 'yyyy-MM-dd');
     fetchHistory(start, end);
   }, [viewDate]);
+
+  useEffect(() => {
+    if (predictions?.next_period_date) {
+      schedulePeriodReminder(predictions.next_period_date);
+    }
+  }, [predictions]);
 
   useEffect(() => {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -96,12 +117,6 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     return eachDayOfInterval({ start, end });
   }, [viewDate]);
 
-  const modalCalendarDays = useMemo(() => {
-    const start = startOfMonth(modalViewDate);
-    const end = endOfMonth(modalViewDate);
-    return eachDayOfInterval({ start, end });
-  }, [modalViewDate]);
-
   const handleOpenBottomSheet = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     bottomSheetRef.current?.expand();
@@ -117,8 +132,6 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setModalStart(selectedDate);
     setModalEnd(null);
-    setModalViewDate(selectedDate);
-    setActiveHandle('end');
     setPeriodModalVisible(true);
   };
 
@@ -126,22 +139,17 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     const normalizedDay = startOfDay(day);
     Haptics.selectionAsync();
     
-    if (activeHandle === 'start') {
+    if (!modalStart || (modalStart && modalEnd)) {
       setModalStart(normalizedDay);
-      if (modalEnd && normalizedDay > modalEnd) {
-        setModalEnd(null);
-      }
-      setActiveHandle('end');
+      setModalEnd(null);
+    } else if (normalizedDay < modalStart) {
+      setModalStart(normalizedDay);
+      setModalEnd(null);
+    } else if (normalizedDay.getTime() === modalStart.getTime()) {
+      setModalStart(null);
+      setModalEnd(null);
     } else {
-      if (!modalStart || normalizedDay < modalStart) {
-        setModalStart(normalizedDay);
-        setModalEnd(null);
-      } else if (normalizedDay.getTime() === modalStart.getTime()) {
-        setModalStart(normalizedDay);
-        setModalEnd(null);
-      } else {
-        setModalEnd(normalizedDay);
-      }
+      setModalEnd(normalizedDay);
     }
   };
 
@@ -230,6 +238,10 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     });
   };
 
+  const handleUpdateNotes = (notes: string) => {
+    setCurrentLog((prev: any) => ({ ...prev, notes }));
+  };
+
   const handleSaveLog = async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setIsLogging(true);
@@ -252,7 +264,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
-          <ActivityIndicator size="large" color="#A29BFE" />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       </SafeAreaView>
     );
@@ -263,7 +275,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     : 0;
 
   const currentPhase = predictions?.current_phase || 'Unknown';
-  const themeColor = PHASE_COLORS[currentPhase] || '#A29BFE';
+  const themeColor = PHASE_COLORS[currentPhase] || Colors.primary;
   const insight = PHASE_INSIGHTS[currentPhase] || PHASE_INSIGHTS['Follicular'];
 
   return (
@@ -302,14 +314,8 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
       <PeriodModal 
         visible={periodModalVisible}
         onClose={() => setPeriodModalVisible(false)}
-        modalViewDate={modalViewDate}
-        onPrevMonth={() => setModalViewDate(subMonths(modalViewDate, 1))}
-        onNextMonth={() => setModalViewDate(addMonths(modalViewDate, 1))}
-        activeHandle={activeHandle}
-        setActiveHandle={setActiveHandle}
         modalStart={modalStart}
         modalEnd={modalEnd}
-        modalCalendarDays={modalCalendarDays}
         onDatePress={handleModalDatePress}
         onSave={handleSavePeriod}
         isLogging={isLogging}
@@ -343,6 +349,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         setActiveCategory={setActiveCategory}
         currentLog={currentLog}
         onToggleSymptom={handleToggleSymptom}
+        onUpdateNotes={handleUpdateNotes}
         onSave={handleSaveLog}
         themeColor={themeColor}
         snapPoints={snapPoints}

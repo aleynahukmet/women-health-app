@@ -1,22 +1,15 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Dimensions } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
-// import Animated, { 
-//   useAnimatedProps, 
-//   useSharedValue, 
-//   withRepeat, 
-//   withTiming, 
-//   easing,
-//   interpolate
-// } from 'react-native-reanimated';
+import Animated, { 
+  useAnimatedProps, 
+  useSharedValue, 
+  withRepeat, 
+  withTiming, 
+  Easing,
+} from 'react-native-reanimated';
 
-const useSharedValue = (v: any) => ({ value: v });
-const useAnimatedProps = (cb: any) => ({ d: '' });
-const withRepeat = (v: any) => v;
-const withTiming = (v: any) => v;
-const easing = { linear: (v: any) => v };
-
-const AnimatedPath = Path; // Mocked
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 interface LiquidWaveProps {
   size: number;
@@ -30,45 +23,26 @@ export const LiquidWave: React.FC<LiquidWaveProps> = ({ size, progress, color })
 
   useEffect(() => {
     wave1.value = withRepeat(
-      withTiming(1, { duration: 3000, easing: easing.linear }),
+      withTiming(1, { duration: 3000, easing: Easing.linear }),
       -1,
       false
     );
     wave2.value = withRepeat(
-      withTiming(1, { duration: 4000, easing: easing.linear }),
+      withTiming(1, { duration: 4000, easing: Easing.linear }),
       -1,
       false
     );
   }, []);
 
   const animatedProps1 = useAnimatedProps(() => {
-    const waveHeight = 10;
     const y = size * (1 - progress);
-    const xOffset = wave1.value * size;
-    
-    let path = `M ${-size} ${y} `;
-    for (let x = -size; x <= size * 2; x += 10) {
-      const angle = (x / size) * 2 * Math.PI;
-      const waveY = y + Math.sin(angle + wave1.value * 2 * Math.PI) * waveHeight;
-      path += `L ${x} ${waveY} `;
-    }
-    path += `L ${size * 2} ${size} L ${-size} ${size} Z`;
-    
+    const path = `M 0 ${y} L ${size} ${y} L ${size} ${size} L 0 ${size} Z`;
     return { d: path };
   });
 
   const animatedProps2 = useAnimatedProps(() => {
-    const waveHeight = 15;
-    const y = size * (1 - progress);
-    
-    let path = `M ${-size} ${y} `;
-    for (let x = -size; x <= size * 2; x += 10) {
-      const angle = (x / size) * 2 * Math.PI;
-      const waveY = y + Math.cos(angle + wave2.value * 2 * Math.PI) * waveHeight;
-      path += `L ${x} ${waveY} `;
-    }
-    path += `L ${size * 2} ${size} L ${-size} ${size} Z`;
-    
+    const y = size * (1 - progress) + 5;
+    const path = `M 0 ${y} L ${size} ${y} L ${size} ${size} L 0 ${size} Z`;
     return { d: path };
   });
 
@@ -91,7 +65,7 @@ export const LiquidWave: React.FC<LiquidWaveProps> = ({ size, progress, color })
 const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
-    backgroundColor: '#F1F2F6',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -1,10 +1,18 @@
-import React, { forwardRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import React, { forwardRef, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Dimensions, TextInput } from 'react-native';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring, 
+  withSequence,
+  Layout,
+  FadeIn,
+} from 'react-native-reanimated';
 // import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 const BottomSheet = forwardRef(({ children }: any, ref: any) => <View>{children}</View>);
 const BottomSheetView = View;
 const BottomSheetBackdrop = () => null;
-import { Check } from 'lucide-react-native';
+import { Check, Edit3 } from 'lucide-react-native';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { SYMPTOM_CATEGORIES, SYMPTOMS_BY_CATEGORY } from '../constants';
@@ -12,12 +20,67 @@ import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 const { width } = Dimensions.get('window');
 
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
+interface SymptomCardProps {
+  item: any;
+  isSelected: boolean;
+  intensity: number;
+  activeCategory: string;
+  onPress: () => void;
+}
+
+const SymptomCard: React.FC<SymptomCardProps> = ({ 
+  item, 
+  isSelected, 
+  intensity, 
+  activeCategory, 
+  onPress 
+}) => {
+  const handlePress = () => {
+    onPress();
+  };
+
+  return (
+    <TouchableOpacity 
+      style={[
+        styles.symptomCard, 
+        isSelected && { borderColor: Colors.primary, backgroundColor: Colors.primary + '10' },
+      ]}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.symptomCardIcon}>{item.icon}</Text>
+      <Text style={styles.symptomCardLabel}>{item.label}</Text>
+      {intensity > 0 && (
+        <View style={styles.intensityDots}>
+          {[1, 2, 3].map(dot => (
+            <View 
+              key={dot} 
+              style={[
+                styles.intensityDot, 
+                { backgroundColor: dot <= intensity ? Colors.primary : Colors.border }
+              ]} 
+            />
+          ))}
+        </View>
+      )}
+      {isSelected && activeCategory !== 'pain' && intensity === 0 && (
+        <View style={[styles.checkBadgeSmall, { backgroundColor: Colors.primary }]}>
+          <Check size={10} color={Colors.card} />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
+
 interface SymptomBottomSheetProps {
   selectedDate: Date;
   activeCategory: string;
   setActiveCategory: (category: string) => void;
   currentLog: any;
   onToggleSymptom: (categoryId: string, symptomId: any) => void;
+  onUpdateNotes: (notes: string) => void;
   onSave: () => void;
   themeColor: string;
   snapPoints: string[];
@@ -29,6 +92,7 @@ export const SymptomBottomSheet = forwardRef<BottomSheet, SymptomBottomSheetProp
   setActiveCategory,
   currentLog,
   onToggleSymptom,
+  onUpdateNotes,
   onSave,
   themeColor,
   snapPoints,
@@ -105,37 +169,34 @@ export const SymptomBottomSheet = forwardRef<BottomSheet, SymptomBottomSheetProp
               }
 
               return (
-                <TouchableOpacity 
+                <SymptomCard 
                   key={item.id}
-                  style={[
-                    styles.symptomCard, 
-                    isSelected && { borderColor: Colors.primary, backgroundColor: Colors.primary + '10' }
-                  ]}
+                  item={item}
+                  isSelected={isSelected}
+                  intensity={intensity}
+                  activeCategory={activeCategory}
                   onPress={() => onToggleSymptom(activeCategory, item.id)}
-                >
-                  <Text style={styles.symptomCardIcon}>{item.icon}</Text>
-                  <Text style={styles.symptomCardLabel}>{item.label}</Text>
-                  {intensity > 0 && (
-                    <View style={styles.intensityDots}>
-                      {[1, 2, 3].map(dot => (
-                        <View 
-                          key={dot} 
-                          style={[
-                            styles.intensityDot, 
-                            { backgroundColor: dot <= intensity ? Colors.primary : Colors.border }
-                          ]} 
-                        />
-                      ))}
-                    </View>
-                  )}
-                  {isSelected && activeCategory !== 'pain' && intensity === 0 && (
-                    <View style={[styles.checkBadgeSmall, { backgroundColor: Colors.primary }]}>
-                      <Check size={10} color="#FFF" />
-                    </View>
-                  )}
-                </TouchableOpacity>
+                />
               );
             })}
+          </View>
+
+          {/* Journaling Module */}
+          <View style={styles.journalSection}>
+            <View style={styles.journalHeader}>
+              <Edit3 size={18} color={Colors.primary} />
+              <Text style={styles.journalTitle}>Body Journal</Text>
+            </View>
+            <TextInput
+              style={styles.journalInput}
+              placeholder="How are you feeling today? (e.g., 'feeling a bit tired but happy')"
+              placeholderTextColor={Colors.textLight}
+              multiline
+              numberOfLines={3}
+              value={currentLog.notes || ''}
+              onChangeText={onUpdateNotes}
+              textAlignVertical="top"
+            />
           </View>
         </ScrollView>
       </BottomSheetView>
@@ -171,7 +232,7 @@ const styles = StyleSheet.create({
   doneBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFF',
+    color: Colors.card,
   },
   categoryTabs: {
     marginBottom: 24,
@@ -261,5 +322,32 @@ const styles = StyleSheet.create({
     height: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  journalSection: {
+    marginTop: 24,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  journalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  journalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.text,
+    marginLeft: 8,
+  },
+  journalInput: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: 16,
+    fontSize: 14,
+    color: Colors.text,
+    minHeight: 100,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
 });

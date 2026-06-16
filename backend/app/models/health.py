@@ -47,6 +47,7 @@ class SymptomLog(Base):
     mood_metrics = Column(JSON, default=[]) # Array of strings: ["anxious", "irritable"]
     lifestyle_metrics = Column(JSON, default={}) # e.g., {"bloating": true, "sleep_quality": 2}
     sex_logged = Column(JSON, default={}) # e.g., {"active": true, "protected": true}
+    notes = Column(String, nullable=True) # Journaling
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

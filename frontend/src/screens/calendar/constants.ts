@@ -1,3 +1,5 @@
+import { Colors } from '../../theme/theme';
+
 export const SYMPTOM_CATEGORIES = [
   { id: 'flow', label: 'Flow', icon: '💧' },
   { id: 'pain', label: 'Pain', icon: '😫' },
@@ -49,16 +51,16 @@ export const SYMPTOMS_BY_CATEGORY: Record<string, any[]> = {
 };
 
 export const PAIN_LEVELS = [
-  { id: 1, label: 'Mild', color: '#FFF5F5' },
-  { id: 2, label: 'Moderate', color: '#FED7D7' },
-  { id: 3, label: 'Severe', color: '#FEB2B2' },
+  { id: 1, label: 'Mild', color: Colors.background },
+  { id: 2, label: 'Moderate', color: Colors.ovulation + '40' },
+  { id: 3, label: 'Severe', color: Colors.menstrual + '40' },
 ];
 
 export const PHASE_COLORS: Record<string, string> = {
-  'Menstrual': '#D37A62',
-  'Follicular': '#8FA883',
-  'Ovulatory': '#E5BA93',
-  'Luteal': '#2C3E50',
+  'Menstrual': Colors.menstrual,
+  'Follicular': Colors.follicular,
+  'Ovulatory': Colors.ovulation,
+  'Luteal': Colors.luteal,
 };
 
 export const PHASE_INSIGHTS: Record<string, { title: string, desc: string }> = {

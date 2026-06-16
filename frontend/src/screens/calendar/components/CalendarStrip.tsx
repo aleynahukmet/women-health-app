@@ -33,11 +33,11 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
     <View style={styles.calendarStrip}>
       <View style={styles.stripHeader}>
         <TouchableOpacity onPress={onPrevMonth}>
-          <ChevronLeft size={20} color="#636E72" />
+          <ChevronLeft size={20} color={Colors.textSecondary} />
         </TouchableOpacity>
         <Text style={styles.stripMonthText}>{format(viewDate, 'MMMM yyyy')}</Text>
         <TouchableOpacity onPress={onNextMonth}>
-          <ChevronRight size={20} color="#636E72" />
+          <ChevronRight size={20} color={Colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -76,8 +76,8 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
                 isLoggedPeriod && { backgroundColor: Colors.primary, borderColor: Colors.primary, opacity: 0.8 },
               ]}
             >
-              <Text style={[styles.dayName, (isSelected || isLoggedPeriod) && { color: '#FFF' }]}>{format(day, 'EEE')}</Text>
-              <Text style={[styles.dayNum, (isSelected || isLoggedPeriod) && { color: '#FFF' }]}>{format(day, 'd')}</Text>
+              <Text style={[styles.dayName, (isSelected || isLoggedPeriod) && { color: Colors.card }]}>{format(day, 'EEE')}</Text>
+              <Text style={[styles.dayNum, (isSelected || isLoggedPeriod) && { color: Colors.card }]}>{format(day, 'd')}</Text>
               {isToday && !isSelected && !isLoggedPeriod && <View style={[styles.todayDot, { backgroundColor: Colors.primary }]} />}
               {symptomHistory[format(day, 'yyyy-MM-dd')] && !isLoggedPeriod && !isSelected && (
                 <View style={[styles.logDot, { backgroundColor: Colors.primary }]} />

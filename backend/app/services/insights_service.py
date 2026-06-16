@@ -113,9 +113,28 @@ class InsightsService:
         if luteal_data.get("logs", 0) > 0 and (luteal_irritability / luteal_data["logs"]) > 0.5:
             daily_insight = "Your mood often dips during the Luteal phase. This is a common response to progesterone changes. Consider extra self-care today."
 
+        # 6. Recent Notes
+        recent_notes = []
+        for log in reversed(symptom_logs):
+            if log.notes:
+                recent_notes.append({
+                    "date": log.log_date.strftime("%B %d, %Y"),
+                    "text": log.notes
+                })
+                if len(recent_notes) >= 5: # Top 5 recent notes
+                    break
+
+        # 7. Cycle Comparison
+        current_cycle_length = None
+        if len(cycle_logs) >= 2:
+            current_cycle_length = (cycle_logs[-1].start_date - cycle_logs[-2].start_date).days
+
         return {
             "phase_correlations": correlations,
             "symptom_fingerprints": fingerprints,
             "correlations": correlations, # Duplicate for flexibility
-            "daily_insight": daily_insight
+            "daily_insight": daily_insight,
+            "recent_notes": recent_notes,
+            "average_cycle_length": int(cycle_length),
+            "current_cycle_length": current_cycle_length
         }
