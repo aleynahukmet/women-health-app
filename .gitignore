@@ -14,8 +14,14 @@ venv/
 env/
 .env/
 sql_app.db
+sql_app 2.db
 
 # IDEs
 .vscode/
 .idea/
 .DS_Store
+
+# Accidental copies
+* 2*
+* 2.xcodeproj
+* 2.db

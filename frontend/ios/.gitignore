@@ -28,3 +28,8 @@ project.xcworkspace
 
 # CocoaPods
 /Pods/
+/Pods 2/
+
+# Xcode
+build/
+build 2/
