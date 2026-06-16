@@ -3,11 +3,15 @@ export const Colors = {
   background: '#FBF9F6', // Soft Linen White
   card: '#FFFFFF',
   
-  // Phase Colors (Earth & Sanctuary Palette)
-  menstrual: '#D37A62',   // Matte Terracotta
-  follicular: '#8FA883',  // Calm Sage Green
-  ovulation: '#E5BA93',   // Warm Champagne Gold
-  luteal: '#2C3E50',      // Deep Midnight Blue
+  // Phase Colors (Mulberry & Sage Palette)
+  menstrual: '#9B3062',   // Mulberry
+  follicular: '#A8B595',  // Pale Sage
+  ovulation: '#8FA883',   // Light Sage
+  luteal: '#4A5D4E',      // Dark Sage / Forest
+
+  // Aliases for clarity
+  period: '#9B3062',
+  fertility: '#5F7D65',   // Adaçayı Yeşili
   
   // Text
   text: '#2D3436',
@@ -15,8 +19,8 @@ export const Colors = {
   textLight: '#B2BEC3',
   
   // UI Elements
-  primary: '#8FA883',     // Using Sage Green as primary
-  accent: '#D37A62',      // Terracotta as accent
+  primary: '#5F7D65',     // Sage Green as primary
+  accent: '#9B3062',      // Mulberry as accent
   border: '#E2E8F0',
   error: '#FF7675',
   success: '#55E6C1',

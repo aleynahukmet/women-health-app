@@ -1,36 +1,23 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Settings, ChevronLeft } from 'lucide-react-native';
+import { Settings } from 'lucide-react-native';
 import { format } from 'date-fns';
-import { useTranslation } from 'react-i18next';
 import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
 interface CalendarHeaderProps {
-  name: string;
   viewDate: Date;
-  onMonthPress: () => void;
   onSettingsPress?: () => void;
 }
 
 export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
-  name,
   viewDate,
-  onMonthPress,
   onSettingsPress,
 }) => {
-  const { t } = useTranslation();
-
   return (
     <View style={styles.header}>
-      <View>
-        <Text style={styles.greeting}>{t('dashboard.greeting', { name: name || 'there' })}</Text>
-        <TouchableOpacity onPress={onMonthPress} style={styles.monthSelector}>
-          <Text style={styles.dateText}>{format(viewDate, 'MMMM yyyy')}</Text>
-          <ChevronLeft size={16} color={Colors.text} style={{ transform: [{ rotate: '-90deg' }], marginLeft: 4 }} />
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.dateText}>{format(viewDate, 'MMMM yyyy')}</Text>
       <TouchableOpacity style={styles.iconButton} onPress={onSettingsPress}>
-        <Settings size={24} color={Colors.text} />
+        <Settings size={22} color={Colors.textSecondary} />
       </TouchableOpacity>
     </View>
   );
@@ -42,33 +29,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  greeting: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    paddingVertical: Spacing.lg,
   },
   dateText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: Colors.text,
   },
   iconButton: {
-    padding: 10,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.card,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  monthSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
+    padding: 8,
   },
 });

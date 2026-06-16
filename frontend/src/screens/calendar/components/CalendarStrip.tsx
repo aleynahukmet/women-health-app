@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Leaf } from 'lucide-react-native';
 import { format, isSameDay, isWithinInterval, parseISO } from 'date-fns';
 import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
@@ -65,22 +65,62 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
             })
           );
 
+          // Check for fertile window and ovulation
+          let isFertile = false;
+          let isOvulation = false;
+          if (predictions?.current_cycle) {
+            const fertileStart = parseISO(predictions.current_cycle.fertile_window.start);
+            const fertileEnd = parseISO(predictions.current_cycle.fertile_window.end);
+            const ovulationDate = parseISO(predictions.ovulation_date);
+            
+            isFertile = isWithinInterval(day, { start: fertileStart, end: fertileEnd });
+            isOvulation = isSameDay(day, ovulationDate);
+          }
+
           return (
             <TouchableOpacity 
               key={index} 
               onPress={() => onDatePress(day)}
               style={[
                 styles.calendarDay, 
-                isSelected && { backgroundColor: Colors.primary, borderColor: Colors.primary },
-                isPredictedPeriod && !isSelected && { borderColor: Colors.primary, borderWidth: 2, backgroundColor: Colors.background, borderStyle: 'dashed' },
-                isLoggedPeriod && { backgroundColor: Colors.primary, borderColor: Colors.primary, opacity: 0.8 },
+                isSelected && { backgroundColor: themeColor, borderColor: themeColor },
+                isPredictedPeriod && !isSelected && { 
+                  borderColor: Colors.period, 
+                  borderWidth: 1.5, 
+                  backgroundColor: Colors.period + '10', 
+                  borderStyle: 'dashed' 
+                },
+                isLoggedPeriod && { 
+                  backgroundColor: Colors.period, 
+                  borderColor: Colors.period,
+                },
+                isFertile && !isSelected && !isLoggedPeriod && !isPredictedPeriod && {
+                  backgroundColor: Colors.fertility + '15',
+                  borderColor: isOvulation ? Colors.fertility : 'transparent',
+                  borderWidth: isOvulation ? 2 : 0,
+                }
               ]}
             >
-              <Text style={[styles.dayName, (isSelected || isLoggedPeriod) && { color: Colors.card }]}>{format(day, 'EEE')}</Text>
-              <Text style={[styles.dayNum, (isSelected || isLoggedPeriod) && { color: Colors.card }]}>{format(day, 'd')}</Text>
-              {isToday && !isSelected && !isLoggedPeriod && <View style={[styles.todayDot, { backgroundColor: Colors.primary }]} />}
+              {isOvulation && !isSelected && (
+                <View style={styles.ovulationIndicator}>
+                  <Leaf size={12} color={Colors.fertility} fill={Colors.fertility} />
+                </View>
+              )}
+              <Text style={[
+                styles.dayName, 
+                (isSelected || isLoggedPeriod) && { color: Colors.card },
+                isPredictedPeriod && !isSelected && { color: Colors.period },
+                isFertile && !isSelected && !isLoggedPeriod && !isPredictedPeriod && { color: Colors.fertility }
+              ]}>{format(day, 'EEE')}</Text>
+              <Text style={[
+                styles.dayNum, 
+                (isSelected || isLoggedPeriod) && { color: Colors.card },
+                isPredictedPeriod && !isSelected && { color: Colors.period },
+                isFertile && !isSelected && !isLoggedPeriod && !isPredictedPeriod && { color: Colors.fertility }
+              ]}>{format(day, 'd')}</Text>
+              {isToday && !isSelected && !isLoggedPeriod && <View style={[styles.todayDot, { backgroundColor: themeColor }]} />}
               {symptomHistory[format(day, 'yyyy-MM-dd')] && !isLoggedPeriod && !isSelected && (
-                <View style={[styles.logDot, { backgroundColor: Colors.primary }]} />
+                <View style={[styles.logDot, { backgroundColor: themeColor }]} />
               )}
             </TouchableOpacity>
           );
@@ -124,6 +164,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.background,
+    position: 'relative',
+  },
+  ovulationIndicator: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: Colors.card,
+    borderRadius: 8,
+    padding: 2,
+    zIndex: 10,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 2,
   },
   dayName: {
     fontSize: 12,

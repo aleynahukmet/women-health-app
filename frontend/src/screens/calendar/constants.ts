@@ -52,14 +52,14 @@ export const SYMPTOMS_BY_CATEGORY: Record<string, any[]> = {
 
 export const PAIN_LEVELS = [
   { id: 1, label: 'Mild', color: Colors.background },
-  { id: 2, label: 'Moderate', color: Colors.ovulation + '40' },
-  { id: 3, label: 'Severe', color: Colors.menstrual + '40' },
+  { id: 2, label: 'Moderate', color: Colors.fertility + '40' },
+  { id: 3, label: 'Severe', color: Colors.period + '40' },
 ];
 
 export const PHASE_COLORS: Record<string, string> = {
-  'Menstrual': Colors.menstrual,
+  'Menstrual': Colors.period,
   'Follicular': Colors.follicular,
-  'Ovulatory': Colors.ovulation,
+  'Ovulatory': Colors.fertility,
   'Luteal': Colors.luteal,
 };
 

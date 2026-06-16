@@ -64,7 +64,7 @@ export default function InsightsScreen() {
         {/* Daily Insight Card */}
         <View style={styles.insightCard}>
           <View style={styles.insightHeader}>
-            <Lightbulb size={20} color={Colors.ovulation} />
+            <Lightbulb size={20} color={Colors.fertility} />
             <Text style={styles.insightTag}>GAIA INSIGHT</Text>
           </View>
           <Text style={styles.insightText}>
@@ -76,7 +76,7 @@ export default function InsightsScreen() {
         {insights?.symptom_fingerprints?.map((fingerprint: any, index: number) => (
           <View key={index} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Fingerprint size={20} color={Colors.primary} />
+              <Fingerprint size={20} color={Colors.fertility} />
               <Text style={styles.sectionTitle}>{fingerprint.title}</Text>
             </View>
             <View style={styles.fingerprintCard}>
@@ -98,13 +98,13 @@ export default function InsightsScreen() {
         {/* Symptom Trends Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <TrendingUp size={20} color={Colors.primary} />
+            <TrendingUp size={20} color={Colors.fertility} />
             <Text style={styles.sectionTitle}>Symptom Trends (Last 3 Months)</Text>
           </View>
           
           <SymptomTrendChart 
             title="Cramps Intensity" 
-            color={Colors.menstrual}
+            color={Colors.period}
             data={[
               { label: 'April', value: 4 },
               { label: 'May', value: 7 },
@@ -114,7 +114,7 @@ export default function InsightsScreen() {
 
           <SymptomTrendChart 
             title="Mood Stability" 
-            color={Colors.follicular}
+            color={Colors.fertility}
             data={[
               { label: 'April', value: 8 },
               { label: 'May', value: 6 },
@@ -126,7 +126,7 @@ export default function InsightsScreen() {
         {/* Phase Correlations */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Activity size={20} color={Colors.primary} />
+            <Activity size={20} color={Colors.fertility} />
             <Text style={styles.sectionTitle}>Phase Correlations</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
@@ -150,7 +150,7 @@ export default function InsightsScreen() {
         {insights?.recent_notes && insights.recent_notes.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <BookOpen size={20} color={Colors.primary} />
+              <BookOpen size={20} color={Colors.fertility} />
               <Text style={styles.sectionTitle}>Recent Journal Entries</Text>
             </View>
             {insights.recent_notes.map((note: any, index: number) => (
@@ -200,13 +200,13 @@ const styles = StyleSheet.create({
   },
   comparisonCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: Colors.fertility + '15',
     padding: 20,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderColor: Colors.fertility + '30',
   },
   comparisonTextWrapper: {
     marginLeft: 16,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   comparisonTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.fertility,
     marginBottom: 4,
   },
   comparisonText: {
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: Colors.ovulation,
+    borderColor: Colors.fertility,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   insightTag: {
     fontSize: 12,
     fontWeight: '800',
-    color: Colors.ovulation,
+    color: Colors.fertility,
     marginLeft: 8,
     letterSpacing: 1,
   },
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   symptomPercentage: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.primary,
+    color: Colors.fertility,
   },
   progressBarContainer: {
     height: 8,
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: '100%',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.fertility,
     borderRadius: 4,
   },
   horizontalScroll: {
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   phaseName: {
     fontSize: 14,
     fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.fertility,
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
+    borderLeftColor: Colors.fertility,
   },
   journalDate: {
     fontSize: 12,

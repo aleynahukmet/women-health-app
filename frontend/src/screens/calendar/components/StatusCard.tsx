@@ -26,19 +26,23 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   const { is_irregular, is_override, override_reason, prediction_window } = predictions;
   const cycleDay = differenceInDays(new Date(), parseISO(predictions.current_cycle.menstrual_phase.start)) + 1;
   
-  // Calculate progress for the wave (e.g., progress through the cycle)
   const cycleLength = predictions.average_cycle_length || 28;
   const progress = Math.min(cycleDay / cycleLength, 1);
 
+  const isPeriod = currentPhase === 'Menstrual';
+
   return (
     <View style={styles.statusCard}>
-      <View style={[styles.phaseIndicator, { backgroundColor: themeColor }]}>
-        <Text style={styles.phaseText}>{t(`phases.${currentPhase.toLowerCase()}`)} Phase</Text>
+      <View style={styles.headerInfo}>
+        <Text style={[styles.phaseText, { color: themeColor }]}>
+          {t(`phases.${currentPhase.toLowerCase()}`)} Phase
+        </Text>
+        <Text style={styles.dayText}>Day {cycleDay}</Text>
       </View>
       
       <View style={styles.waveWrapper}>
         <CycleRing 
-          size={220} 
+          size={260} 
           progress={progress} 
           themeColor={themeColor} 
           currentPhase={currentPhase}
@@ -48,20 +52,26 @@ export const StatusCard: React.FC<StatusCardProps> = ({
 
       <View style={styles.predictionContainer}>
         <Text style={styles.predictionText}>
-          {t('dashboard.period_in', { days: daysUntilPeriod })}
+          {isPeriod ? 'Period ends in' : 'Next period in'} {Math.abs(daysUntilPeriod)} days
         </Text>
         
-        {prediction_window && (
+        {isPeriod ? (
           <Text style={styles.windowText}>
-            Expected: {format(parseISO(prediction_window.start), 'MMM d')} - {format(parseISO(prediction_window.end), 'MMM d')}
+            Estimated End: {format(parseISO(predictions.current_cycle.menstrual_phase.end), 'MMMM d')}
           </Text>
+        ) : (
+          prediction_window && (
+            <Text style={styles.windowText}>
+              Expected: {format(parseISO(prediction_window.start), 'MMM d')} - {format(parseISO(prediction_window.end), 'MMM d')}
+            </Text>
+          )
         )}
       </View>
       
       <View style={styles.badgeContainer}>
         {is_override && (
           <View style={styles.overrideBadge}>
-            <Zap size={14} color={Colors.ovulation} />
+            <Zap size={14} color={Colors.fertility} />
             <Text style={styles.overrideText}>
               {override_reason === 'ovulation_signal' ? 'Adjusted by fertile signs' : 'Adjusted by symptoms'}
             </Text>
@@ -77,7 +87,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
 
         {currentPhase === 'Ovulatory' && (
           <View style={styles.fertileBadge}>
-            <Info size={14} color={Colors.primary} />
+            <Info size={14} color={Colors.fertility} />
             <Text style={styles.fertileText}>High chance of conception</Text>
           </View>
         )}
@@ -88,115 +98,99 @@ export const StatusCard: React.FC<StatusCardProps> = ({
 
 const styles = StyleSheet.create({
   statusCard: {
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
+    backgroundColor: 'transparent',
+    padding: Spacing.md,
     alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    elevation: 5,
     marginBottom: Spacing.xl,
   },
-  phaseIndicator: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.round,
-    marginBottom: 24,
+  headerInfo: {
+    alignItems: 'center',
+    marginBottom: 32,
   },
   phaseText: {
-    color: Colors.card,
-    fontWeight: '700',
-    fontSize: 14,
+    fontWeight: '800',
+    fontSize: 16,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  dayText: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: Colors.text,
   },
   waveWrapper: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    marginBottom: 24,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    marginBottom: 32,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  waveOverlay: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  dayNumber: {
-    fontSize: 56,
-    fontWeight: '800',
-  },
-  dayLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: -4,
-    fontWeight: '600',
-  },
   predictionContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   predictionText: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.text,
   },
   windowText: {
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.textSecondary,
-    marginTop: 4,
+    marginTop: 8,
+    fontWeight: '600',
   },
   badgeContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
   },
   fertileBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: Colors.fertility + '15',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: BorderRadius.md,
   },
   fertileText: {
-    color: Colors.primary,
+    color: Colors.fertility,
     fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 6,
+    fontWeight: '700',
+    marginLeft: 8,
   },
   overrideBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: Colors.fertility + '15',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: BorderRadius.md,
   },
   overrideText: {
-    color: Colors.ovulation,
+    color: Colors.fertility,
     fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 6,
+    fontWeight: '700',
+    marginLeft: 8,
   },
   irregularBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: Colors.card,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   irregularText: {
     color: Colors.textSecondary,
     fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 6,
+    fontWeight: '700',
+    marginLeft: 8,
   },
 });

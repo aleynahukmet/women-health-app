@@ -86,7 +86,8 @@ def get_predictions(
         cycle_length=cycle_length,
         period_length=period_length,
         recent_logs=recent_symptoms,
-        variation=variation
+        variation=variation,
+        historical_cycles=cycle_logs
     )
     
     # 4. Predict future cycles

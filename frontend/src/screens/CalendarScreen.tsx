@@ -16,7 +16,6 @@ import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
 // Components
 import { CalendarHeader } from './calendar/components/CalendarHeader';
-import { CalendarStrip } from './calendar/components/CalendarStrip';
 import { StatusCard } from './calendar/components/StatusCard';
 import { QuickActions } from './calendar/components/QuickActions';
 import { InsightCard } from './calendar/components/InsightCard';
@@ -66,6 +65,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
   });
 
   const [isLogging, setIsLogging] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Period Logging Modal State
@@ -122,6 +122,12 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     bottomSheetRef.current?.expand();
   }, []);
 
+  const handleOpenNotes = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setActiveCategory('body'); // Or a dedicated notes category if available
+    bottomSheetRef.current?.expand();
+  }, []);
+
   const handleDateSelect = (day: Date) => {
     const normalizedDay = startOfDay(day);
     setSelectedDate(normalizedDay);
@@ -165,6 +171,8 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         intensity: 'medium'
       });
       setPeriodModalVisible(false);
+      await fetchPredictions();
+      await fetchCycleLogs();
       showToast.success('Period saved successfully');
     } catch (error) {
       showToast.error('Failed to save period.');
@@ -260,6 +268,49 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     }
   };
 
+  const handleStartPeriod = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setIsActionLoading(true);
+    try {
+      await logCycle({
+        start_date: format(new Date(), 'yyyy-MM-dd'),
+        intensity: 'medium'
+      });
+      await fetchPredictions();
+      await fetchCycleLogs();
+      showToast.success('Period started!');
+    } catch (error) {
+      showToast.error('Failed to start period');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleEndPeriod = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const activeLog = cycleLogs.find(log => !log.end_date);
+    if (!activeLog) {
+      setPeriodModalVisible(true);
+      return;
+    }
+
+    setIsActionLoading(true);
+    try {
+      await logCycle({
+        start_date: activeLog.start_date,
+        end_date: format(new Date(), 'yyyy-MM-dd'),
+        intensity: activeLog.intensity || 'medium'
+      });
+      await fetchPredictions();
+      await fetchCycleLogs();
+      showToast.success('Period ended!');
+    } catch (error) {
+      showToast.error('Failed to end period');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
   if (loading && !predictions) {
     return (
       <SafeAreaView style={styles.container}>
@@ -275,15 +326,14 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     : 0;
 
   const currentPhase = predictions?.current_phase || 'Unknown';
-  const themeColor = PHASE_COLORS[currentPhase] || Colors.primary;
+  const themeColor = currentPhase === 'Menstrual' ? Colors.period : (currentPhase === 'Ovulatory' ? Colors.fertility : Colors.follicular);
   const insight = PHASE_INSIGHTS[currentPhase] || PHASE_INSIGHTS['Follicular'];
 
   return (
     <SafeAreaView style={styles.container}>
       <CalendarHeader 
-        name={profile?.name}
         viewDate={viewDate}
-        onMonthPress={() => setShowDatePicker(true)}
+        onSettingsPress={() => {}}
       />
 
       {showDatePicker && (
@@ -298,19 +348,6 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         />
       )}
 
-      <CalendarStrip 
-        viewDate={viewDate}
-        selectedDate={selectedDate}
-        calendarDays={calendarDays}
-        predictions={predictions}
-        cycleLogs={cycleLogs}
-        symptomHistory={symptomHistory}
-        themeColor={themeColor}
-        onDatePress={handleDateSelect}
-        onPrevMonth={() => setViewDate(subMonths(viewDate, 1))}
-        onNextMonth={() => setViewDate(addMonths(viewDate, 1))}
-      />
-
       <PeriodModal 
         visible={periodModalVisible}
         onClose={() => setPeriodModalVisible(false)}
@@ -320,9 +357,11 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         onSave={handleSavePeriod}
         isLogging={isLogging}
         themeColor={themeColor}
+        averagePeriodLength={profile?.average_period_length || 5}
+        predictions={predictions}
       />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <StatusCard 
           predictions={predictions}
           themeColor={themeColor}
@@ -334,6 +373,11 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
           onLogSymptoms={handleOpenBottomSheet}
           onLogPeriod={handleOpenPeriodModal}
           onViewInsights={() => navigation.navigate('Insights')}
+          currentPhase={currentPhase}
+          onStartPeriod={handleStartPeriod}
+          onEndPeriod={handleEndPeriod}
+          onAddNotes={handleOpenNotes}
+          isActionLoading={isActionLoading}
         />
 
         <InsightCard 

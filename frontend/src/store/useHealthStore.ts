@@ -163,6 +163,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
         return { cycleLogs: newLogs, loading: false };
       });
       get().fetchPredictions();
+      get().fetchCycleLogs();
     } catch (error: any) {
       showToast.error('Failed to log cycle', error.message);
       set({ error: error.message, loading: false });

@@ -29,9 +29,9 @@ export const CycleRing: React.FC<CycleRingProps> = ({
   const getPhaseColor = (phase: string) => {
     switch (phase.toLowerCase()) {
       case 'follicular': return Colors.follicular;
-      case 'ovulatory': return Colors.ovulation;
+      case 'ovulatory': return Colors.fertility;
       case 'luteal': return Colors.luteal;
-      case 'menstrual': return Colors.menstrual;
+      case 'menstrual': return Colors.period;
       default: return themeColor;
     }
   };
@@ -40,9 +40,9 @@ export const CycleRing: React.FC<CycleRingProps> = ({
 
   // Define phase segments (simplified for visualization)
   const segments = [
-    { name: 'Menstrual', length: 0.2, color: Colors.menstrual },
+    { name: 'Menstrual', length: 0.2, color: Colors.period },
     { name: 'Follicular', length: 0.3, color: Colors.follicular },
-    { name: 'Ovulatory', length: 0.1, color: Colors.ovulation },
+    { name: 'Ovulatory', length: 0.1, color: Colors.fertility },
     { name: 'Luteal', length: 0.4, color: Colors.luteal },
   ];
 
@@ -136,16 +136,18 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   dayNumber: {
-    fontSize: 48,
-    fontWeight: '800',
+    fontSize: 64,
+    fontWeight: '900',
     textShadowColor: 'rgba(255, 255, 255, 0.5)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
   dayLabel: {
-    fontSize: 14,
+    fontSize: 18,
     color: Colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
     marginTop: -4,
   },
 });

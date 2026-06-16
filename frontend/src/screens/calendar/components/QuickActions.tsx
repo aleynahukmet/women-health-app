@@ -1,6 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Calendar as CalendarIcon, Plus, TrendingUp } from 'lucide-react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Calendar as CalendarIcon, Plus, TrendingUp, BookOpen } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
@@ -9,43 +9,71 @@ interface QuickActionsProps {
   onLogPeriod: () => void;
   onViewCalendar?: () => void;
   onViewInsights?: () => void;
+  currentPhase?: string;
+  onStartPeriod?: () => void;
+  onEndPeriod?: () => void;
+  onAddNotes?: () => void;
+  isActionLoading?: boolean;
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({ 
   onLogSymptoms, 
   onLogPeriod,
-  onViewCalendar,
-  onViewInsights
+  onViewInsights,
+  currentPhase,
+  onStartPeriod,
+  onEndPeriod,
+  onAddNotes,
+  isActionLoading = false,
 }) => {
   const { t } = useTranslation();
+  const isPeriod = currentPhase === 'Menstrual';
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
+      {/* Main Period Action Button */}
+      <TouchableOpacity 
+        style={[
+          styles.mainActionButton, 
+          { backgroundColor: isPeriod ? Colors.fertility : Colors.period }
+        ]} 
+        onPress={isPeriod ? onEndPeriod : onStartPeriod}
+        disabled={isActionLoading}
+      >
+        {isActionLoading ? (
+          <ActivityIndicator color={Colors.card} />
+        ) : (
+          <>
+            <CalendarIcon size={24} color={Colors.card} />
+            <Text style={styles.mainActionLabel}>
+              {isPeriod ? 'End Period' : 'Start Period'}
+            </Text>
+          </>
+        )}
+      </TouchableOpacity>
+
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.actionButton} onPress={onLogSymptoms}>
-          <View style={[styles.actionIcon, { backgroundColor: Colors.primary }]}>
-            <Plus size={24} color={Colors.card} />
+        <TouchableOpacity style={styles.smallActionButton} onPress={onLogSymptoms}>
+          <View style={[styles.smallActionIcon, { backgroundColor: Colors.fertility + '15' }]}>
+            <Plus size={20} color={Colors.fertility} />
           </View>
-          <Text style={styles.actionLabel}>{t('dashboard.log_symptoms')}</Text>
+          <Text style={styles.smallActionLabel}>Log Symptoms</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.actionButton} onPress={onLogPeriod}>
-          <View style={[styles.actionIcon, { backgroundColor: Colors.menstrual }]}>
-            <CalendarIcon size={24} color={Colors.card} />
+        <TouchableOpacity style={styles.smallActionButton} onPress={onAddNotes}>
+          <View style={[styles.smallActionIcon, { backgroundColor: Colors.period + '15' }]}>
+            <BookOpen size={20} color={Colors.period} />
           </View>
-          <Text style={styles.actionLabel}>Log Period</Text>
+          <Text style={styles.smallActionLabel}>Add Notes</Text>
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity 
-        style={[styles.actionButton, { width: '100%', marginTop: 16, flexDirection: 'row', padding: 16 }]} 
+        style={styles.insightsButton} 
         onPress={onViewInsights}
       >
-        <View style={[styles.actionIcon, { backgroundColor: Colors.luteal, marginBottom: 0, marginRight: 16, width: 40, height: 40, borderRadius: 20 }]}>
-          <TrendingUp size={20} color={Colors.card} />
-        </View>
-        <Text style={styles.actionLabel}>View Detailed Insights</Text>
+        <TrendingUp size={18} color={Colors.textSecondary} />
+        <Text style={styles.insightsLabel}>View Detailed Insights</Text>
       </TouchableOpacity>
     </View>
   );
@@ -54,40 +82,68 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
 const styles = StyleSheet.create({
   section: {
     marginBottom: 32,
+    paddingHorizontal: 4,
   },
-  sectionTitle: {
+  mainActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 18,
+    borderRadius: BorderRadius.xl,
+    marginBottom: 20,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  mainActionLabel: {
+    color: Colors.card,
     fontSize: 18,
     fontWeight: '800',
-    color: Colors.text,
-    marginBottom: 16,
+    marginLeft: 12,
   },
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 12,
   },
-  actionButton: {
+  smallActionButton: {
+    flex: 1,
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
-    padding: 20,
-    width: '48%',
+    padding: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  actionIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  smallActionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginRight: 10,
   },
-  actionLabel: {
-    fontSize: 14,
+  smallActionLabel: {
+    fontSize: 12,
     fontWeight: '700',
     color: Colors.text,
+    flex: 1,
+  },
+  insightsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    padding: 12,
+  },
+  insightsLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginLeft: 8,
+    textDecorationLine: 'underline',
   },
 });
