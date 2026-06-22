@@ -113,3 +113,38 @@ class CycleEngine:
         if c["luteal_phase"]["start"] <= current_date <= c["luteal_phase"]["end"]:
             return "Luteal"
         return "Unknown"
+
+    @staticmethod
+    def detect_anomalies(
+        last_cycle: Optional[Any], 
+        average_cycle_length: int, 
+        average_period_length: int
+    ) -> List[Dict]:
+        """
+        Detects medical and statistical anomalies in the most recent cycle.
+        Returns a list of warning objects with type and message.
+        """
+        warnings = []
+        if not last_cycle:
+            return warnings
+
+        # 1. Calculate metrics for the last cycle
+        cycle_duration = None
+        period_duration = None
+        
+        if last_cycle.start_date and last_cycle.end_date:
+            period_duration = (last_cycle.end_date - last_cycle.start_date).days + 1
+        
+        # Note: cycle_duration requires the start of the cycle BEFORE this one, 
+        # which isn't passed here. We'll handle that in the service layer.
+        
+        # 2. Medical Standards Check
+        if period_duration and period_duration > 7:
+            warnings.append({
+                "type": "prolonged_bleeding",
+                "severity": "medium",
+                "title": "Prolonged Bleeding",
+                "message": f"Your period lasted {period_duration} days. If this happens frequently, it's worth discussing with a doctor."
+            })
+
+        return warnings

@@ -10,3 +10,5 @@ python-multipart
 alembic
 python-dotenv
 email-validator
+reportlab
+matplotlib

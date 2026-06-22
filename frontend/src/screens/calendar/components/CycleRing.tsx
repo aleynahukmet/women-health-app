@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { LiquidWave } from './LiquidWave';
-import { Colors } from '../../../theme/theme';
+import { Colors as StaticColors, useTheme } from '../../../theme/theme';
+import { PHASE_COLORS } from '../constants';
 
 interface CycleRingProps {
   size: number;
@@ -19,6 +20,7 @@ export const CycleRing: React.FC<CycleRingProps> = ({
   themeColor,
   cycleDay 
 }) => {
+  const { colors: Colors } = useTheme();
   const strokeWidth = 15;
   const radius = (size - strokeWidth) / 2;
   const center = size / 2;
@@ -26,24 +28,14 @@ export const CycleRing: React.FC<CycleRingProps> = ({
   const strokeDashoffset = circumference - progress * circumference;
 
   // Dynamic phase colors based on UX maturity suggestions
-  const getPhaseColor = (phase: string) => {
-    switch (phase.toLowerCase()) {
-      case 'follicular': return Colors.follicular;
-      case 'ovulatory': return Colors.fertility;
-      case 'luteal': return Colors.luteal;
-      case 'menstrual': return Colors.period;
-      default: return themeColor;
-    }
-  };
-
-  const activeColor = getPhaseColor(currentPhase);
+  const activeColor = PHASE_COLORS[currentPhase] || themeColor;
 
   // Define phase segments (simplified for visualization)
   const segments = [
-    { name: 'Menstrual', length: 0.2, color: Colors.period },
-    { name: 'Follicular', length: 0.3, color: Colors.follicular },
-    { name: 'Ovulatory', length: 0.1, color: Colors.fertility },
-    { name: 'Luteal', length: 0.4, color: Colors.luteal },
+    { name: 'Menstrual', length: 0.2, color: PHASE_COLORS['Menstrual'] },
+    { name: 'Follicular', length: 0.3, color: PHASE_COLORS['Follicular'] },
+    { name: 'Ovulatory', length: 0.1, color: PHASE_COLORS['Ovulatory'] },
+    { name: 'Luteal', length: 0.4, color: PHASE_COLORS['Luteal'] },
   ];
 
   let currentOffset = 0;
@@ -89,7 +81,7 @@ export const CycleRing: React.FC<CycleRingProps> = ({
       
       <View style={styles.content}>
         <Text style={[styles.dayNumber, { color: Colors.text }]}>{cycleDay}</Text>
-        <Text style={styles.dayLabel}>Day</Text>
+        <Text style={[styles.dayLabel, { color: Colors.textSecondary }]}>Day</Text>
       </View>
     </View>
   );
@@ -123,7 +115,6 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     fontSize: 18,
-    color: Colors.textSecondary,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 2,

@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Calendar as CalendarIcon, Plus, TrendingUp, BookOpen } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
+import { Colors as StaticColors, Spacing, BorderRadius, useTheme } from '../../../theme/theme';
 
 interface QuickActionsProps {
   onLogSymptoms: () => void;
@@ -28,6 +28,8 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   predictions,
 }) => {
   const { t } = useTranslation();
+  const { colors: Colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors), [Colors]);
   const isPeriodActive = currentPhase === 'Menstrual';
   
   // Check if period is already logged (has both start and end date)
@@ -110,7 +112,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any) => StyleSheet.create({
   container: {
     marginBottom: 28,
   },

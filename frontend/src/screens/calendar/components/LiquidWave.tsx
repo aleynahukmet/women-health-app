@@ -36,13 +36,31 @@ export const LiquidWave: React.FC<LiquidWaveProps> = ({ size, progress, color })
 
   const animatedProps1 = useAnimatedProps(() => {
     const y = size * (1 - progress);
-    const path = `M 0 ${y} L ${size} ${y} L ${size} ${size} L 0 ${size} Z`;
+    const amplitude = 5;
+    const frequency = 2 * Math.PI / size;
+    const phase = wave1.value * 2 * Math.PI;
+    
+    let path = `M 0 ${y}`;
+    for (let x = 0; x <= size; x += 5) {
+      const waveY = y + amplitude * Math.sin(x * frequency + phase);
+      path += ` L ${x} ${waveY}`;
+    }
+    path += ` L ${size} ${size} L 0 ${size} Z`;
     return { d: path };
   });
 
   const animatedProps2 = useAnimatedProps(() => {
-    const y = size * (1 - progress) + 5;
-    const path = `M 0 ${y} L ${size} ${y} L ${size} ${size} L 0 ${size} Z`;
+    const y = size * (1 - progress) + 2;
+    const amplitude = 8;
+    const frequency = 2 * Math.PI / size;
+    const phase = wave2.value * 2 * Math.PI;
+    
+    let path = `M 0 ${y}`;
+    for (let x = 0; x <= size; x += 5) {
+      const waveY = y + amplitude * Math.sin(x * frequency - phase);
+      path += ` L ${x} ${waveY}`;
+    }
+    path += ` L ${size} ${size} L 0 ${size} Z`;
     return { d: path };
   });
 

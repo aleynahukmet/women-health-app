@@ -57,10 +57,29 @@ export const PAIN_LEVELS = [
 ];
 
 export const PHASE_COLORS: Record<string, string> = {
-  'Menstrual': Colors.period,
-  'Follicular': Colors.follicular,
-  'Ovulatory': Colors.fertility,
-  'Luteal': Colors.luteal,
+  'Menstrual': '#D66D75',   // Soft Wine / Rose
+  'Follicular': '#4DB6AC',  // Fresh Turquoise / Green
+  'Ovulatory': '#FFD54F',   // Vibrant Gold
+  'Luteal': '#9575CD',      // Relaxing Lavender
+};
+
+export const PHASE_GREETINGS: Record<string, { title: string, subtitle: string }> = {
+  'Menstrual': {
+    title: 'Listen to your body',
+    subtitle: 'Time for rest and gentle care.'
+  },
+  'Follicular': {
+    title: 'New beginnings',
+    subtitle: 'Your energy is rising. Go for it!'
+  },
+  'Ovulatory': {
+    title: 'You are glowing!',
+    subtitle: 'Peak confidence and social energy.'
+  },
+  'Luteal': {
+    title: 'Slow down and reflect',
+    subtitle: 'Focus on self-care and comfort.'
+  },
 };
 
 export const PHASE_INSIGHTS: Record<string, { title: string, desc: string }> = {

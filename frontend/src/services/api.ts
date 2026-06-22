@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store'; // Refreshed import to trigger
 import { resetToWelcome } from '../utils/navigation';
 import { showToast } from '../utils/toast';
 
-const API_URL = 'http://192.168.1.8:8000/api/v1';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.8:8000/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -145,6 +145,23 @@ export const healthApi = {
 
   deleteMyData: async () => {
     const response = await api.delete('/health/data');
+    return response.data;
+  },
+
+  getDoctorReport: async () => {
+    const response = await api.get('/health/report', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  exportData: async () => {
+    const response = await api.get('/health/export');
+    return response.data;
+  },
+
+  importData: async (data: any) => {
+    const response = await api.post('/health/import', data);
     return response.data;
   },
 };

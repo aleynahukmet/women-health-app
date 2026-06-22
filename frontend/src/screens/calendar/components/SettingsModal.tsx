@@ -1,8 +1,13 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Modal, Alert, ScrollView } from 'react-native';
-import { Shield, Trash2, LogOut, ChevronRight, X, Bell } from 'lucide-react-native';
-import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Modal, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { Shield, Trash2, LogOut, ChevronRight, X, Bell, Download, Upload, FileJson } from 'lucide-react-native';
+import { Colors as StaticColors, Spacing, BorderRadius, useTheme } from '../../../theme/theme';
 import { useHealthStore } from '../../../store/useHealthStore';
+import { healthApi } from '../../../services/api';
+import { showToast } from '../../../utils/toast';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 
 interface SettingsModalProps {
   visible: boolean;
@@ -17,8 +22,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onLogout,
   onDeleteData,
 }) => {
+  const { colors: Colors, isDark } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors, isDark), [Colors, isDark]);
   const profile = useHealthStore((state) => state.profile);
   const updateProfile = useHealthStore((state) => state.updateProfile);
+  const fetchPredictions = useHealthStore((state) => state.fetchPredictions);
+  const fetchCycleLogs = useHealthStore((state) => state.fetchCycleLogs);
+  const fetchHistory = useHealthStore((state) => state.fetchHistory);
+  
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const togglePref = async (key: string) => {
     if (!profile) return;
@@ -27,6 +40,80 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       [key]: !profile.notification_prefs[key]
     };
     await updateProfile({ notification_prefs: newPrefs });
+  };
+
+  const handleExportData = async () => {
+    try {
+      setIsExporting(true);
+      const data = await healthApi.exportData();
+      const filename = `gaia_backup_${new Date().toISOString().split('T')[0]}.json`;
+      const fileUri = FileSystem.documentDirectory + filename;
+      
+      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(data, null, 2));
+      
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri);
+      } else {
+        showToast.success('Export Complete', `Saved to: ${fileUri}`);
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      showToast.error('Export Failed', 'Could not export your data.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportData = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      const file = result.assets[0];
+      
+      Alert.alert(
+        "Import Data?",
+        "This will overwrite all your current cycle and symptom history with the data from the file. This cannot be undone.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Import & Overwrite", 
+            onPress: async () => {
+              try {
+                setIsImporting(true);
+                const content = await FileSystem.readAsStringAsync(file.uri);
+                const jsonData = JSON.parse(content);
+                
+                await healthApi.importData(jsonData);
+                
+                // Refresh all store data
+                await Promise.all([
+                  useHealthStore.getState().fetchProfile(),
+                  fetchPredictions(),
+                  fetchCycleLogs(),
+                  fetchHistory(
+                    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    new Date().toISOString().split('T')[0]
+                  )
+                ]);
+
+                showToast.success('Import Successful', 'Your data has been restored.');
+              } catch (e) {
+                showToast.error('Import Failed', 'Invalid backup file format.');
+              } finally {
+                setIsImporting(false);
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      showToast.error('Import Error', 'Could not open file picker.');
+    }
   };
 
   const handleDeletePress = () => {
@@ -106,6 +193,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </View>
 
             <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Data Portability</Text>
+              
+              <TouchableOpacity style={styles.menuItem} onPress={handleExportData} disabled={isExporting}>
+                <View style={[styles.iconContainer, { backgroundColor: Colors.primary + '15' }]}>
+                  {isExporting ? <ActivityIndicator size="small" color={Colors.primary} /> : <Download size={18} color={Colors.primary} />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.menuLabel}>Backup Data (JSON)</Text>
+                  <Text style={styles.menuSubtitle}>Download your entire history</Text>
+                </View>
+                <ChevronRight size={18} color={Colors.textLight} />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem} onPress={handleImportData} disabled={isImporting}>
+                <View style={[styles.iconContainer, { backgroundColor: Colors.fertility + '15' }]}>
+                  {isImporting ? <ActivityIndicator size="small" color={Colors.fertility} /> : <Upload size={18} color={Colors.fertility} />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.menuLabel}>Restore Data</Text>
+                  <Text style={styles.menuSubtitle}>Import from a backup file</Text>
+                </View>
+                <ChevronRight size={18} color={Colors.textLight} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.section}>
               <Text style={styles.sectionTitle}>Account & Privacy</Text>
               
               <TouchableOpacity style={styles.menuItem} onPress={onLogout}>
@@ -142,7 +255,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any, isDark: boolean) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -152,7 +265,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
-    minHeight: '50%',
+    minHeight: '70%',
     paddingBottom: 40,
   },
   header: {
@@ -199,14 +312,18 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   menuLabel: {
-    flex: 1,
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
   },
+  menuSubtitle: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 2,
+  },
   privacyInfo: {
     flexDirection: 'row',
-    backgroundColor: Colors.background,
+    backgroundColor: isDark ? '#2A2A2A' : Colors.background,
     padding: 16,
     borderRadius: BorderRadius.md,
     alignItems: 'flex-start',

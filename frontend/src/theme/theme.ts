@@ -1,4 +1,4 @@
-export const Colors = {
+export const LightColors = {
   // Backgrounds
   background: '#FDFCFB', // Warm White / Cream
   card: '#FFFFFF',
@@ -33,6 +33,61 @@ export const Colors = {
   // Glassmorphism / Overlays
   overlay: 'rgba(255, 255, 255, 0.8)',
   shadow: '#3D405B',
+};
+
+export const DarkColors = {
+  // Backgrounds
+  background: '#121212', // Deep Charcoal
+  card: '#1E1E1E',      // Lighter Charcoal
+  
+  // Phase Colors (Slightly more vibrant for dark background)
+  menstrual: '#E57373',
+  follicular: '#FFD54F',
+  ovulation: '#81C784',
+  luteal: '#9FA8DA',
+
+  // Aliases
+  period: '#E57373',
+  fertility: '#81C784',
+  ovulatory: '#81C784',
+  
+  // Text
+  text: '#F5F5F5',
+  textSecondary: '#BDBDBD',
+  textLight: '#757575',
+  
+  // UI Elements
+  primary: '#E57373',
+  accent: '#FFD54F',
+  border: '#333333',
+  error: '#E57373',
+  success: '#81C784',
+  
+  // Discreet Palette
+  neutral: '#333333',
+  neutralDark: '#F5F5F5',
+
+  // Glassmorphism / Overlays
+  overlay: 'rgba(30, 30, 30, 0.8)',
+  shadow: '#000000',
+};
+
+// Default export for backward compatibility
+export const Colors = LightColors;
+
+import { useColorScheme } from 'react-native';
+
+export const useTheme = () => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? DarkColors : LightColors;
+  
+  return {
+    colors: theme,
+    isDark,
+    spacing: Spacing,
+    borderRadius: BorderRadius,
+  };
 };
 
 export const Spacing = {

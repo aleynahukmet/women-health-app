@@ -9,7 +9,7 @@ import { showToast } from '../utils/toast';
 import { registerForPushNotificationsAsync, scheduleAllNotifications } from '../utils/notifications';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { Colors, Spacing, BorderRadius } from '../theme/theme';
+import { Colors as StaticColors, Spacing, BorderRadius, useTheme } from '../theme/theme';
 
 // Components
 import { CalendarHeader } from './calendar/components/CalendarHeader';
@@ -23,11 +23,16 @@ import { SettingsModal } from './calendar/components/SettingsModal';
 import BottomSheet from '@gorhom/bottom-sheet';
 
 // Constants
-import { PHASE_INSIGHTS } from './calendar/constants';
+import { PHASE_INSIGHTS, PHASE_COLORS, PHASE_GREETINGS } from './calendar/constants';
 
 export default function CalendarScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Dashboard'>) {
-  const profile = useHealthStore((state) => state.profile);
+  const { colors: Colors, isDark } = useTheme();
   const predictions = useHealthStore((state) => state.predictions);
+  const currentPhase = predictions?.current_phase || 'Unknown';
+  const themeColor = PHASE_COLORS[currentPhase] || Colors.primary;
+  
+  const styles = useMemo(() => createStyles(Colors, themeColor, isDark), [Colors, themeColor, isDark]);
+  const profile = useHealthStore((state) => state.profile);
   const cycleLogs = useHealthStore((state) => state.cycleLogs);
   const symptomHistory = useHealthStore((state) => state.symptomHistory);
   const loading = useHealthStore((state) => state.loading);
@@ -348,8 +353,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     ? differenceInDays(parseISO(predictions.next_period_date), new Date()) 
     : 0;
 
-  const currentPhase = predictions?.current_phase || 'Unknown';
-  const themeColor = currentPhase === 'Menstrual' ? Colors.period : (currentPhase === 'Ovulatory' ? Colors.fertility : Colors.follicular);
+  const greeting = PHASE_GREETINGS[currentPhase] || { title: format(viewDate, 'MMMM yyyy'), subtitle: '' };
   const insight = PHASE_INSIGHTS[currentPhase] || PHASE_INSIGHTS['Follicular'];
 
   return (
@@ -357,6 +361,9 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
       <CalendarHeader 
         viewDate={viewDate}
         onSettingsPress={() => setIsSettingsVisible(true)}
+        greeting={greeting.title}
+        subtitle={greeting.subtitle}
+        themeColor={themeColor}
       />
 
       <WeeklyCalendar 
@@ -428,10 +435,10 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any, themeColor: string, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: isDark ? Colors.background : themeColor + '08',
   },
   content: {
     flex: 1,

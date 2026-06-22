@@ -133,6 +133,55 @@ class InsightsService:
         symptom_trends = []
         today = date.today()
         
+        # 9. Anomaly Detection
+        warnings = []
+        if len(cycle_logs) >= 2:
+            last_cycle = cycle_logs[-1]
+            prev_cycle = cycle_logs[-2]
+            
+            last_cycle_length = (last_cycle.start_date - prev_cycle.start_date).days
+            
+            # Medical Standard: Short Cycle (< 21 days)
+            if last_cycle_length < 21:
+                warnings.append({
+                    "type": "short_cycle",
+                    "severity": "medium",
+                    "title": "Short Cycle Detected",
+                    "message": f"Your last cycle was {last_cycle_length} days. Cycles shorter than 21 days can be caused by stress, diet, or hormonal changes."
+                })
+            
+            # Medical Standard: Long Cycle (> 35 days)
+            elif last_cycle_length > 35:
+                warnings.append({
+                    "type": "long_cycle",
+                    "severity": "medium",
+                    "title": "Long Cycle Detected",
+                    "message": f"Your last cycle was {last_cycle_length} days. Cycles longer than 35 days are common but can sometimes indicate ovulation changes."
+                })
+            
+            # Statistical Anomaly: Significant deviation from average (> 5 days)
+            diff_from_avg = abs(last_cycle_length - int(cycle_length))
+            if diff_from_avg >= 5 and not (last_cycle_length < 21 or last_cycle_length > 35):
+                warnings.append({
+                    "type": "cycle_deviation",
+                    "severity": "low",
+                    "title": "Cycle Variation",
+                    "message": f"Your cycle was {diff_from_avg} days { 'longer' if last_cycle_length > cycle_length else 'shorter' } than usual. Travel, stress, or illness can often cause this."
+                })
+
+        # Check for prolonged bleeding in the last log
+        if cycle_logs:
+            last_log = cycle_logs[-1]
+            if last_log.end_date:
+                period_days = (last_log.end_date - last_log.start_date).days + 1
+                if period_days > 7:
+                    warnings.append({
+                        "type": "prolonged_bleeding",
+                        "severity": "medium",
+                        "title": "Prolonged Period",
+                        "message": f"Your period lasted {period_days} days. If this continues for multiple cycles, consider consulting a specialist."
+                    })
+
         # Helper to get month name and year
         def get_month_label(d: date):
             return d.strftime("%B")
@@ -190,5 +239,6 @@ class InsightsService:
             "recent_notes": recent_notes,
             "average_cycle_length": int(cycle_length),
             "current_cycle_length": current_cycle_length,
-            "symptom_trends": symptom_trends
+            "symptom_trends": symptom_trends,
+            "warnings": warnings
         }

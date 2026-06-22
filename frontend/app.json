@@ -19,6 +19,11 @@
     },
     "web": {
       "favicon": ""
-    }
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker",
+      "expo-localization",
+      "expo-secure-store"
+    ]
   }
 }

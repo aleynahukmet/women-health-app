@@ -1,7 +1,0 @@
-{
-  "name": "root",
-  "private": true,
-  "dependencies": {
-    "expo-secure-store": "^56.0.4"
-  }
-}

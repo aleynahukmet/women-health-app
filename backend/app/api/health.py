@@ -9,6 +9,7 @@ from app.schemas import health as schemas
 from app.services.cycle_engine import CycleEngine
 from app.services.cycle_service import CycleService
 from app.services.insights_service import InsightsService
+from app.services.report_service import ReportService
 from app.api.deps import get_current_user
 from app.models.user import User
 
@@ -263,3 +264,123 @@ def delete_user_data(
     
     db.commit()
     return {"message": "All user data has been permanently deleted"}
+
+@router.get("/report")
+def get_doctor_report(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generates a PDF report for the doctor.
+    """
+    from fastapi.responses import StreamingResponse
+    
+    pdf_buffer = ReportService.generate_doctor_report(db, current_user.uuid)
+    
+    return StreamingResponse(
+        pdf_buffer, 
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=doctor_report_{date.today()}.pdf"}
+    )
+
+@router.get("/export")
+def export_user_data(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Exports all user health data as a JSON file.
+    """
+    profile = db.query(models.HealthProfile).filter(models.HealthProfile.user_uuid == current_user.uuid).first()
+    cycle_logs = db.query(models.CycleLog).filter(models.CycleLog.user_uuid == current_user.uuid).all()
+    symptom_logs = db.query(models.SymptomLog).filter(models.SymptomLog.user_uuid == current_user.uuid).all()
+    
+    data = {
+        "export_date": datetime.utcnow().isoformat(),
+        "profile": {
+            "name": profile.name,
+            "age": profile.age,
+            "date_of_birth": profile.date_of_birth.isoformat() if profile.date_of_birth else None,
+            "average_cycle_length": profile.average_cycle_length,
+            "average_period_length": profile.average_period_length,
+            "goal": profile.goal,
+            "notification_prefs": profile.notification_prefs
+        } if profile else None,
+        "cycle_logs": [
+            {
+                "start_date": log.start_date.isoformat(),
+                "end_date": log.end_date.isoformat() if log.end_date else None,
+                "intensity": log.intensity
+            } for log in cycle_logs
+        ],
+        "symptom_logs": [
+            {
+                "log_date": log.log_date.isoformat(),
+                "flow_level": log.flow_level,
+                "pain_metrics": log.pain_metrics,
+                "mood_metrics": log.mood_metrics,
+                "lifestyle_metrics": log.lifestyle_metrics,
+                "sex_logged": log.sex_logged,
+                "notes": log.notes
+            } for log in symptom_logs
+        ]
+    }
+    
+    return data
+
+@router.post("/import")
+def import_user_data(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Imports user health data from a JSON object.
+    Clears existing data before importing to prevent duplicates.
+    """
+    # 1. Clear existing data
+    db.query(models.SymptomLog).filter(models.SymptomLog.user_uuid == current_user.uuid).delete()
+    db.query(models.CycleLog).filter(models.CycleLog.user_uuid == current_user.uuid).delete()
+    db.query(models.HealthProfile).filter(models.HealthProfile.user_uuid == current_user.uuid).delete()
+    
+    # 2. Import Profile
+    profile_data = data.get("profile")
+    if profile_data:
+        db_profile = models.HealthProfile(
+            user_uuid=current_user.uuid,
+            name=profile_data.get("name"),
+            age=profile_data.get("age"),
+            date_of_birth=date.fromisoformat(profile_data["date_of_birth"]) if profile_data.get("date_of_birth") else None,
+            average_cycle_length=profile_data.get("average_cycle_length", 28),
+            average_period_length=profile_data.get("average_period_length", 5),
+            goal=profile_data.get("goal"),
+            notification_prefs=profile_data.get("notification_prefs", {})
+        )
+        db.add(db_profile)
+    
+    # 3. Import Cycle Logs
+    for log_data in data.get("cycle_logs", []):
+        db_log = models.CycleLog(
+            user_uuid=current_user.uuid,
+            start_date=date.fromisoformat(log_data["start_date"]),
+            end_date=date.fromisoformat(log_data["end_date"]) if log_data.get("end_date") else None,
+            intensity=log_data.get("intensity")
+        )
+        db.add(db_log)
+        
+    # 4. Import Symptom Logs
+    for log_data in data.get("symptom_logs", []):
+        db_log = models.SymptomLog(
+            user_uuid=current_user.uuid,
+            log_date=date.fromisoformat(log_data["log_date"]),
+            flow_level=log_data.get("flow_level", 0),
+            pain_metrics=log_data.get("pain_metrics", {}),
+            mood_metrics=log_data.get("mood_metrics", []),
+            lifestyle_metrics=log_data.get("lifestyle_metrics", {}),
+            sex_logged=log_data.get("sex_logged", {}),
+            notes=log_data.get("notes")
+        )
+        db.add(db_log)
+        
+    db.commit()
+    return {"message": "Data imported successfully"}

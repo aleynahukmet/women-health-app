@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Dimensions } from 'react-native';
 import { Info, AlertCircle, Zap, ChevronDown } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { differenceInDays, parseISO, format } from 'date-fns';
-import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
+import { Colors as StaticColors, Spacing, BorderRadius, useTheme } from '../../../theme/theme';
 import { CycleRing } from './CycleRing';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -24,6 +24,8 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   onExpand
 }) => {
   const { t } = useTranslation();
+  const { colors: Colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors), [Colors]);
 
   if (!predictions) return null;
 
@@ -99,7 +101,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any) => StyleSheet.create({
   container: {
     marginBottom: Spacing.lg,
   },
