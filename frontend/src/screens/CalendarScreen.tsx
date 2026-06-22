@@ -10,6 +10,7 @@ import { registerForPushNotificationsAsync, scheduleAllNotifications } from '../
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { Colors as StaticColors, Spacing, BorderRadius, useTheme } from '../theme/theme';
+import { authApi } from '../services/api';
 
 // Components
 import { CalendarHeader } from './calendar/components/CalendarHeader';
@@ -106,6 +107,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     }
   }, [predictions, profile]);
 
+  // BUG ÇÖZÜMÜ: Sadece seçilen tarih değiştiğinde yerel durumu senkronize et, asenkron ezilmeleri önle.
   useEffect(() => {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     const log = symptomHistory[dateStr] || {
@@ -114,13 +116,10 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
       mood_metrics: [],
       lifestyle_metrics: {},
       sex_logged: {},
+      notes: '',
     };
-    
-    const timer = setTimeout(() => {
-      setCurrentLog(log);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [selectedDate, symptomHistory]);
+    setCurrentLog(log);
+  }, [selectedDate]);
 
   const handleOpenBottomSheet = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -142,7 +141,6 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
   const handleOpenPeriodModal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
-    // If the clicked day is already within a logged period, load those dates for editing
     const existingLog = cycleLogs.find((log: any) => {
       const start = parseISO(log.start_date);
       const end = log.end_date ? parseISO(log.end_date) : start;
@@ -152,12 +150,11 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     if (existingLog) {
       setModalStart(parseISO(existingLog.start_date));
       setModalEnd(existingLog.end_date ? parseISO(existingLog.end_date) : null);
-      setEditingLogId(existingLog.id); // Store the ID being edited
+      setEditingLogId(existingLog.id);
     } else {
-      // IF NEW ENTRY: Open with null dates to prevent auto-selecting today
       setModalStart(null);
       setModalEnd(null);
-      setEditingLogId(null); // New entry
+      setEditingLogId(null);
     }
     setIsPeriodModalVisible(true);
   };
@@ -167,24 +164,17 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     Haptics.selectionAsync();
     
     if (!modalStart) {
-      // Step 1: If no start date selected, set clicked day as start
       setModalStart(normalizedDay);
       setModalEnd(null);
     } else if (modalStart && !modalEnd) {
-      // Step 2: If start exists but end doesn't
       if (normalizedDay < modalStart) {
-        // ERROR PREVENTION/FLEXIBILITY: If user clicks a date BEFORE start,
-        // update start date to that day! (Allows changing start date)
         setModalStart(normalizedDay);
       } else if (isSameDay(normalizedDay, modalStart)) {
-        // Reset selection if clicking the same day
         setModalStart(null);
       } else {
-        // Set as end date if clicking a date after start
         setModalEnd(normalizedDay);
       }
     } else {
-      // Step 3: If both dates already selected, a new click resets and starts new selection
       setModalStart(normalizedDay);
       setModalEnd(null);
     }
@@ -200,7 +190,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         start_date: format(modalStart, 'yyyy-MM-dd'),
         end_date: format(modalEnd, 'yyyy-MM-dd'),
         intensity: 'medium',
-        id: editingLogId || undefined // Send ID if exists, backend will update automatically
+        id: editingLogId || undefined
       });
       setIsPeriodModalVisible(false);
       await fetchPredictions(format(viewDate, 'yyyy-MM-dd'));
@@ -216,60 +206,54 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
   const handleToggleSymptom = (categoryId: string, symptomId: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
-    const prevLog = currentLog;
-    let nextLog = { ...prevLog };
-    switch (categoryId) {
-      case 'flow':
-        nextLog = { ...prevLog, flow_level: symptomId };
-        break;
-      case 'pain': {
-        const currentLevel = prevLog.pain_metrics[symptomId] || 0;
-        const nextLevel = (currentLevel + 1) % 4;
-        const newPainMetrics = { ...prevLog.pain_metrics };
-        if (nextLevel === 0) delete newPainMetrics[symptomId];
-        else newPainMetrics[symptomId] = nextLevel;
-        nextLog = { ...prevLog, pain_metrics: newPainMetrics };
-        break;
-      }
-      case 'mood':
-        nextLog = {
-          ...prevLog,
-          mood_metrics: prevLog.mood_metrics.includes(symptomId)
-            ? prevLog.mood_metrics.filter((id: any) => id !== symptomId)
-            : [...prevLog.mood_metrics, symptomId]
-        };
-        break;
-      case 'energy':
-      case 'body': {
-        const currentLevel = prevLog.lifestyle_metrics[symptomId] || 0;
-        const nextLevel = (currentLevel + 1) % 4;
-        const newLifestyleMetrics = { ...prevLog.lifestyle_metrics };
-        if (nextLevel === 0) delete newLifestyleMetrics[symptomId];
-        else newLifestyleMetrics[symptomId] = nextLevel;
-        nextLog = { ...prevLog, lifestyle_metrics: newLifestyleMetrics };
-        break;
-      }
-      case 'sex': {
-        const newSexLogged = { ...prevLog.sex_logged };
-        if (newSexLogged[symptomId]) {
-          delete newSexLogged[symptomId];
-        } else {
-          newSexLogged[symptomId] = true;
+    setCurrentLog((prevLog: any) => {
+      let nextLog = { ...prevLog };
+      switch (categoryId) {
+        case 'flow':
+          nextLog = { ...prevLog, flow_level: symptomId };
+          break;
+        case 'pain': {
+          const currentLevel = prevLog.pain_metrics[symptomId] || 0;
+          const nextLevel = (currentLevel + 1) % 4;
+          const newPainMetrics = { ...prevLog.pain_metrics };
+          if (nextLevel === 0) delete newPainMetrics[symptomId];
+          else newPainMetrics[symptomId] = nextLevel;
+          nextLog = { ...prevLog, pain_metrics: newPainMetrics };
+          break;
         }
-        nextLog = { ...prevLog, sex_logged: newSexLogged };
-        break;
+        case 'mood':
+          nextLog = {
+            ...prevLog,
+            mood_metrics: prevLog.mood_metrics.includes(symptomId)
+              ? prevLog.mood_metrics.filter((id: any) => id !== symptomId)
+              : [...prevLog.mood_metrics, symptomId]
+          };
+          break;
+        case 'energy':
+        case 'body': {
+          const currentLevel = prevLog.lifestyle_metrics[symptomId] || 0;
+          const nextLevel = (currentLevel + 1) % 4;
+          const newLifestyleMetrics = { ...prevLog.lifestyle_metrics };
+          if (nextLevel === 0) delete newLifestyleMetrics[symptomId];
+          else newLifestyleMetrics[symptomId] = nextLevel;
+          nextLog = { ...prevLog, lifestyle_metrics: newLifestyleMetrics };
+          break;
+        }
+        case 'sex': {
+          const newSexLogged = { ...prevLog.sex_logged };
+          if (newSexLogged[symptomId]) {
+            delete newSexLogged[symptomId];
+          } else {
+            newSexLogged[symptomId] = true;
+          }
+          nextLog = { ...prevLog, sex_logged: newSexLogged };
+          break;
+        }
+        default:
+          break;
       }
-      default:
-        break;
-    }
-    
-    setCurrentLog(nextLog);
-    
-    // Auto-save logic - moved outside of the state update to avoid side effects during render/update
-    upsertSymptomLog({
-      log_date: format(selectedDate, 'yyyy-MM-dd'),
-      ...nextLog
-    }).catch(console.error);
+      return nextLog;
+    });
   };
 
   const handleUpdateNotes = (notes: string) => {
@@ -284,6 +268,10 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         log_date: format(selectedDate, 'yyyy-MM-dd'),
         ...currentLog
       });
+      const start = format(startOfMonth(viewDate), 'yyyy-MM-dd');
+      const end = format(endOfMonth(viewDate), 'yyyy-MM-dd');
+      await fetchHistory(start, end); // Önbelleği güncelle
+      await fetchPredictions(format(viewDate, 'yyyy-MM-dd'));
       bottomSheetRef.current?.close();
       showToast.success('Symptoms logged');
     } catch (error) {
@@ -364,12 +352,15 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     );
   }
 
+  // BUG ÇÖZÜMÜ: Saat kırılımlarından arındırılmış temiz gün sayacı hesaplaması
   const daysUntilPeriod = predictions 
-    ? differenceInDays(parseISO(predictions.next_period_date), new Date()) 
+    ? differenceInDays(startOfDay(parseISO(predictions.next_period_date)), startOfDay(new Date())) 
     : 0;
 
   const greeting = PHASE_GREETINGS[currentPhase] || { title: format(viewDate, 'MMMM yyyy'), subtitle: '' };
   const insight = PHASE_INSIGHTS[currentPhase] || PHASE_INSIGHTS['Follicular'];
+
+  const hasLogs = cycleLogs.length > 0 || Object.keys(symptomHistory).length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -414,6 +405,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
           currentPhase={currentPhase}
           daysUntilPeriod={daysUntilPeriod}
           onExpand={() => setIsPeriodModalVisible(true)}
+          hasLogs={cycleLogs && cycleLogs.length > 0}
         />
 
         <QuickActions 

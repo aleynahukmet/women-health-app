@@ -45,7 +45,7 @@ interface CycleRingProps {
   progress: number; // 0 to 1
   currentPhase: string;
   themeColor: string;
-  cycleDay: number;
+  cycleDay: number | string;
 }
 
 export const CycleRing: React.FC<CycleRingProps> = ({ 

@@ -32,7 +32,6 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
   const markedDates = useMemo(() => {
     const marks: any = {};
 
-    // 1. Future Predictions (Fertility and Ovulation) View
     if (predictions?.current_cycle) {
       const fertileStart = parseISO(predictions.current_cycle.fertile_window.start);
       const fertileEnd = parseISO(predictions.current_cycle.fertile_window.end);
@@ -41,21 +40,19 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
       const fertileRange = eachDayOfInterval({ start: fertileStart, end: fertileEnd });
       fertileRange.forEach((day) => {
         const dateStr = format(day, 'yyyy-MM-dd');
-        const isOvulation = isSameDay(day, ovulationDate);
+        const isFocusDay = isSameDay(day, ovulationDate);
         
         marks[dateStr] = {
-          color: isOvulation ? Colors.fertility + '30' : Colors.fertility + '15',
-          textColor: isOvulation ? Colors.fertility : Colors.text,
+          color: isFocusDay ? '#8FAA9635' : '#8FAA9615',
+          textColor: isFocusDay ? '#8FAA96' : Colors.text,
         };
       });
     }
     
-    // 2. ACTIVE PERIOD SELECTION AND SMART PROJECTED SHADOW
     if (modalStart) {
       const startStr = format(modalStart, 'yyyy-MM-dd');
       
       if (modalEnd) {
-        // Both start and end selected: Draw solid period block (Capsule)
         const range = eachDayOfInterval({
           start: modalStart < modalEnd ? modalStart : modalEnd,
           end: modalStart < modalEnd ? modalEnd : modalStart
@@ -74,15 +71,13 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
           };
         });
       } else {
-        // ONLY START SELECTED: Highlight start, project future days as shadow
         marks[startStr] = {
           startingDay: true,
-          endingDay: false, // Explicitly false to allow connection
+          endingDay: false,
           color: Colors.period,
           textColor: Colors.card,
         };
 
-        // Project days based on 'averagePeriodLength' (default 5) as semi-transparent
         for (let i = 1; i < averagePeriodLength; i++) {
           const projectedDay = addDays(modalStart, i);
           const projectedDateStr = format(projectedDay, 'yyyy-MM-dd');
@@ -91,7 +86,7 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
           marks[projectedDateStr] = {
             startingDay: false,
             endingDay: isLastProjected,
-            color: Colors.period + '30', // 30% opacity shadow
+            color: Colors.period + '30',
             textColor: Colors.period,
           };
         }
@@ -103,9 +98,9 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
 
   const selectionText = useMemo(() => {
     if (!modalStart) return 'Please select start date';
-    if (!modalEnd) return `${format(modalStart, 'MMM d')} - Select end date (Estimated ~${averagePeriodLength} days)`;
+    if (!modalEnd) return `${format(modalStart, 'MMM d')} - Select end date`;
     return `${format(modalStart, 'MMM d')} - ${format(modalEnd, 'MMM d')}`;
-  }, [modalStart, modalEnd, averagePeriodLength]);
+  }, [modalStart, modalEnd]);
 
   return (
     <Modal
@@ -129,15 +124,14 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
           <Calendar
             markingType={'period'}
             markedDates={markedDates}
+            hideExtraDays={true} // BUG ÇÖZÜMÜ: Gelecek/geçmiş ayın sarkan günlerini tamamen gizler, yeşil lekeleri önler.
             onDayPress={(day: any) => {
-              // day.dateString is in "YYYY-MM-DD" format.
-              // We parse it to create a clean Date object in local timezone.
               const [year, month, dayNum] = day.dateString.split('-').map(Number);
               const localDate = new Date(year, month - 1, dayNum);
               onDatePress(localDate);
             }}
             disableAllTouchEventsForDisabledDays={true}
-            maxDate={new Date().toISOString().split('T')[0]}
+            maxDate={format(new Date(), 'yyyy-MM-dd')} // BUG ÇÖZÜMÜ: UTC yerine yerel saate göre "bugün" seçilebilir hale geldi.
             enableSwipeMonths={true}
             theme={{
               calendarBackground: Colors.card,
@@ -146,7 +140,7 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
               selectedDayTextColor: Colors.card,
               todayTextColor: Colors.period,
               dayTextColor: Colors.text,
-              textDisabledColor: Colors.border, // Dimmed days from other months
+              textDisabledColor: Colors.border,
               dotColor: Colors.period,
               selectedDotColor: Colors.card,
               arrowColor: Colors.period,
@@ -236,16 +230,9 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
-    shadowColor: Colors.period,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
   saveBtnDisabled: {
     backgroundColor: Colors.border,
-    shadowOpacity: 0,
-    elevation: 0,
   },
   saveBtnText: {
     color: Colors.card,

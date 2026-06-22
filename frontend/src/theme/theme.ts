@@ -1,46 +1,45 @@
 export const LightColors = {
-  // Backgrounds
-  background: '#FAF6F6',    // Soft, easy-on-the-eyes off-white/cream
-  card: '#FFFFFF',          // Pure white cards
+  // Global Arka Plan ve Kart Tonları
+  background: '#FAF8F5',    // Yumuşak, gözü yormayan keten/krem beyazı
+  card: '#FFFFFF',          // Net beyaz kartlar
   
-  // Phase Colors (Muted Pastel & Deep Berry Palette)
-  menstrual: '#C95A62',     // Soft, warm coral/red (instead of aggressive red)
-  follicular: '#739574',    // Calming sage green
-  ovulation: '#D99A4E',     // Noble mustard/amber tone
-  luteal: '#7D76A6',        // Misty lavender blue
+  // Birbiriyle Kusursuz Uyumlu Mat Geçişli Faz Renkleri
+  menstrual: '#C97A83',     // Çiğ kırmızı yerine olgun gül kurusu
+  follicular: '#E6BA94',    // Parlak sarı yerine soft pastel şeftali/kum
+  ovulation: '#8FAA96',     // Canlı yeşil yerine sakinleştirici adaçayı yeşili
+  luteal: '#5D637A',        // Sert lacivert yerine puslu dumanlı mavi
+
+  // Takma İsimler (Alias)
+  period: '#C97A83',
+  fertility: '#8FAA96',
+  ovulatory: '#8FAA96',
   
-  // Aliases for clarity
-  period: '#C95A62',
-  fertility: '#D99A4E',
-  ovulatory: '#D99A4E',
+  // Tipografi (Yazı Renkleri)
+  text: '#2D2B3A',          // Saf siyah yerine yazıları yumuşatan derin mürdüm kömürü
+  textSecondary: '#524F66', // İkincil başlıklar için dumanlı mürdüm
+  textLight: '#BAB7C3',     // Silik açıklama metinleri
   
-  // Text
-  text: '#2C1A21',          // Deep berry/plum instead of pure black (softens text)
-  textSecondary: '#8E7A82', // Secondary muted text
-  textLight: '#A8ABB3',
-  
-  // UI Elements
-  primary: '#B35B72',       // Mature, premium rose gold/berry
-  primaryLight: '#F3E1E4',  // Transparent background tone for primary
-  accent: '#D99B82',        // Warm terracotta/peach for action buttons
-  border: '#F4F1DE',
-  error: '#C95A62',
-  success: '#739574',
+  // UI Elementleri
+  primary: '#C97A83',       // Gül kurusu ana renk
+  primaryLight: '#F7E7E9',  // Transparent background tone for primary
+  accent: '#E6BA94',        // Şeftali vurgu rengi
+  border: '#EFECE6',        // Kart sınırları için çok soft gri-krem
+  error: '#C97A83',
+  success: '#8FAA96',
   
   // Severity Levels (for symptoms)
   severity: {
     low: '#F7E7E9',
     medium: '#EBBEC3',
-    high: '#C95A62',
+    high: '#C97A83',
   },
 
   // Discreet Palette
-  neutral: '#F4F1DE',
-  neutralDark: '#2C1A21',
+  neutral: '#EFECE6',
+  neutralDark: '#2D2B3A',
 
-  // Glassmorphism / Overlays
   overlay: 'rgba(255, 255, 255, 0.8)',
-  shadow: '#2C1A21',
+  shadow: '#2D2B3A',
 };
 
 export const DarkColors = {
@@ -65,9 +64,9 @@ export const DarkColors = {
   textLight: '#757575',
   
   // UI Elements
-  primary: '#B35B72',
-  primaryLight: 'rgba(179, 91, 114, 0.2)',
-  accent: '#D99B82',
+  primary: '#C97A83',
+  primaryLight: 'rgba(201, 122, 131, 0.2)',
+  accent: '#E6BA94',
   border: '#33282B',
   error: '#E57373',
   success: '#81C784',
@@ -76,7 +75,7 @@ export const DarkColors = {
   severity: {
     low: '#2D1F22',
     medium: '#4A2B31',
-    high: '#B35B72',
+    high: '#C97A83',
   },
 
   // Discreet Palette

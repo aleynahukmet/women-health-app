@@ -57,10 +57,10 @@ export const PAIN_LEVELS = [
 ];
 
 export const PHASE_COLORS: Record<string, string> = {
-  'Menstrual': '#C95A62',   // Soft, warm coral/red
-  'Follicular': '#739574',  // Calming sage green
-  'Ovulatory': '#D99A4E',   // Noble mustard/amber tone
-  'Luteal': '#7D76A6',      // Misty lavender blue
+  'Menstrual': '#C97A83',
+  'Follicular': '#E6BA94',
+  'Ovulatory': '#8FAA96',
+  'Luteal': '#5D637A',
 };
 
 export const PHASE_GREETINGS: Record<string, { title: string, subtitle: string }> = {

@@ -13,7 +13,7 @@ import { Check, Edit3 } from 'lucide-react-native';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { SYMPTOM_CATEGORIES, SYMPTOMS_BY_CATEGORY } from '../constants';
-import { Colors, Spacing, BorderRadius, useTheme } from '../../../theme/theme';
+import { Spacing, BorderRadius, useTheme } from '../../../theme/theme';
 
 const { width } = Dimensions.get('window');
 
