@@ -6,7 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { format, differenceInDays, parseISO, startOfMonth, endOfMonth, startOfDay, isSameDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { showToast } from '../utils/toast';
-import { registerForPushNotificationsAsync, schedulePeriodReminder } from '../utils/notifications';
+import { registerForPushNotificationsAsync, scheduleAllNotifications } from '../utils/notifications';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { Colors, Spacing, BorderRadius } from '../theme/theme';
@@ -19,6 +19,7 @@ import { InsightCard } from './calendar/components/InsightCard';
 import { PeriodModal } from './calendar/components/PeriodModal';
 import { SymptomBottomSheet } from './calendar/components/SymptomBottomSheet';
 import { WeeklyCalendar } from './calendar/components/WeeklyCalendar';
+import { SettingsModal } from './calendar/components/SettingsModal';
 import BottomSheet from '@gorhom/bottom-sheet';
 
 // Constants
@@ -36,11 +37,13 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
   const fetchHistory = useHealthStore((state) => state.fetchHistory);
   const upsertSymptomLog = useHealthStore((state) => state.upsertSymptomLog);
   const logCycle = useHealthStore((state) => state.logCycle);
+  const deleteMyData = useHealthStore((state) => state.deleteMyData);
 
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
   const [viewDate, setViewDate] = useState(startOfDay(new Date()));
   const [activeCategory, setActiveCategory] = useState('flow');
   const [isPeriodModalVisible, setIsPeriodModalVisible] = useState(false);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   
   const [currentLog, setCurrentLog] = useState<any>({
     flow_level: 0,
@@ -63,22 +66,25 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
   const snapPoints = useMemo(() => ['70%', '90%'], []);
 
   useEffect(() => {
-    fetchProfile();
-    fetchPredictions();
-    fetchCycleLogs();
-    
-    registerForPushNotificationsAsync();
+    const timer = setTimeout(() => {
+      fetchProfile();
+      fetchPredictions(format(viewDate, 'yyyy-MM-dd'));
+      fetchCycleLogs();
+      
+      registerForPushNotificationsAsync();
 
-    const start = format(startOfMonth(viewDate), 'yyyy-MM-dd');
-    const end = format(endOfMonth(viewDate), 'yyyy-MM-dd');
-    fetchHistory(start, end);
+      const start = format(startOfMonth(viewDate), 'yyyy-MM-dd');
+      const end = format(endOfMonth(viewDate), 'yyyy-MM-dd');
+      fetchHistory(start, end);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [viewDate]);
 
   useEffect(() => {
-    if (predictions?.next_period_date) {
-      schedulePeriodReminder(predictions.next_period_date);
+    if (predictions && profile?.notification_prefs) {
+      scheduleAllNotifications(predictions, profile.notification_prefs);
     }
-  }, [predictions]);
+  }, [predictions, profile]);
 
   useEffect(() => {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -177,7 +183,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         id: editingLogId || undefined // Send ID if exists, backend will update automatically
       });
       setIsPeriodModalVisible(false);
-      await fetchPredictions();
+      await fetchPredictions(format(viewDate, 'yyyy-MM-dd'));
       await fetchCycleLogs();
       showToast.success('Period updated successfully');
     } catch (error) {
@@ -275,7 +281,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         start_date: format(new Date(), 'yyyy-MM-dd'),
         intensity: 'medium'
       });
-      await fetchPredictions();
+      await fetchPredictions(format(viewDate, 'yyyy-MM-dd'));
       await fetchCycleLogs();
       showToast.success('Period started!');
     } catch (error) {
@@ -300,7 +306,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         end_date: format(new Date(), 'yyyy-MM-dd'),
         intensity: activeLog.intensity || 'medium'
       });
-      await fetchPredictions();
+      await fetchPredictions(format(viewDate, 'yyyy-MM-dd'));
       await fetchCycleLogs();
       showToast.success('Period ended!');
     } catch (error) {
@@ -308,6 +314,24 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     } finally {
       setIsActionLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await authApi.logout();
+    setIsSettingsVisible(false);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Welcome' }],
+    });
+  };
+
+  const handleDeleteData = async () => {
+    await deleteMyData();
+    setIsSettingsVisible(false);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Welcome' }],
+    });
   };
 
   if (loading && !predictions) {
@@ -332,13 +356,20 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     <SafeAreaView style={styles.container}>
       <CalendarHeader 
         viewDate={viewDate}
-        onSettingsPress={() => {}}
+        onSettingsPress={() => setIsSettingsVisible(true)}
       />
 
       <WeeklyCalendar 
         selectedDate={selectedDate}
         onDateSelect={handleDateSelect}
         symptomHistory={symptomHistory}
+      />
+
+      <SettingsModal 
+        visible={isSettingsVisible}
+        onClose={() => setIsSettingsVisible(false)}
+        onLogout={handleLogout}
+        onDeleteData={handleDeleteData}
       />
 
       <PeriodModal 

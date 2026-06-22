@@ -14,7 +14,7 @@ interface HealthState {
   
   // Actions
   fetchProfile: () => Promise<void>;
-  fetchPredictions: () => Promise<void>;
+  fetchPredictions: (evaluationDate?: string) => Promise<void>;
   fetchSymptoms: () => Promise<void>;
   fetchHistory: (start: string, end: string) => Promise<void>;
   fetchCycleLogs: () => Promise<void>;
@@ -23,6 +23,7 @@ interface HealthState {
   upsertSymptomLog: (data: any) => Promise<void>;
   logCycle: (cycle: { start_date: string; end_date?: string; intensity?: string }) => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
+  deleteMyData: () => Promise<void>;
 }
 
 export const useHealthStore = create<HealthState>((set, get) => ({
@@ -46,10 +47,10 @@ export const useHealthStore = create<HealthState>((set, get) => ({
     }
   },
 
-  fetchPredictions: async () => {
+  fetchPredictions: async (evaluationDate?: string) => {
     if (!get().loading) set({ loading: true, error: null });
     try {
-      const predictions = await healthApi.getPredictions();
+      const predictions = await healthApi.getPredictions(evaluationDate);
       set({ predictions, loading: false });
     } catch (error: any) {
       showToast.error('Failed to fetch predictions', error.message);
@@ -174,6 +175,27 @@ export const useHealthStore = create<HealthState>((set, get) => ({
       get().fetchPredictions();
     } catch (error: any) {
       showToast.error('Failed to update profile', error.message);
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  deleteMyData: async () => {
+    set({ loading: true, error: null });
+    try {
+      await healthApi.deleteMyData();
+      await authApi.logout();
+      set({ 
+        profile: null, 
+        predictions: null, 
+        symptoms: [], 
+        symptomHistory: {}, 
+        cycleLogs: [], 
+        insights: null,
+        loading: false 
+      });
+      showToast.success('All data has been permanently deleted');
+    } catch (error: any) {
+      showToast.error('Failed to delete data', error.message);
       set({ error: error.message, loading: false });
     }
   },

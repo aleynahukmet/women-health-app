@@ -12,6 +12,12 @@ class HealthProfileBase(BaseModel):
     average_cycle_length: int = 28
     average_period_length: int = 5
     goal: Optional[str] = None
+    notification_prefs: Dict[str, bool] = {
+        "period_reminder": True,
+        "fertility_reminder": False,
+        "daily_reminder": True,
+        "water_reminder": False
+    }
 
 class HealthProfileCreate(HealthProfileBase):
     pass
@@ -98,6 +104,14 @@ class SymptomFingerprint(BaseModel):
     title: str
     symptoms: List[Dict[str, Any]]
 
+class TrendData(BaseModel):
+    label: str
+    value: float
+
+class SymptomTrend(BaseModel):
+    title: str
+    data: List[TrendData]
+
 class InsightsResponse(BaseModel):
     phase_correlations: List[PhaseCorrelation]
     symptom_fingerprints: List[SymptomFingerprint]
@@ -105,3 +119,4 @@ class InsightsResponse(BaseModel):
     recent_notes: List[Dict[str, Any]] = []
     average_cycle_length: Optional[int] = None
     current_cycle_length: Optional[int] = None
+    symptom_trends: List[SymptomTrend] = []

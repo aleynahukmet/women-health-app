@@ -129,6 +129,59 @@ class InsightsService:
         if len(cycle_logs) >= 2:
             current_cycle_length = (cycle_logs[-1].start_date - cycle_logs[-2].start_date).days
 
+        # 8. Symptom Trends (Last 3 Months)
+        symptom_trends = []
+        today = date.today()
+        
+        # Helper to get month name and year
+        def get_month_label(d: date):
+            return d.strftime("%B")
+
+        months = []
+        for i in range(2, -1, -1):
+            # Approximate start of month
+            first_day = (today.replace(day=1) - timedelta(days=i*30)).replace(day=1)
+            months.append(first_day)
+
+        # Calculate Cramps Intensity
+        cramps_data = []
+        for m_start in months:
+            m_end = (m_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            month_logs = [log for log in symptom_logs if m_start <= log.log_date <= m_end]
+            
+            avg_intensity = 0
+            if month_logs:
+                intensities = [log.pain_metrics.get("cramps", 0) for log in month_logs if "cramps" in (log.pain_metrics or {})]
+                if intensities:
+                    avg_intensity = sum(intensities) / len(intensities)
+            
+            cramps_data.append({"label": get_month_label(m_start), "value": round(avg_intensity, 1)})
+
+        symptom_trends.append({
+            "title": "Cramps Intensity",
+            "data": cramps_data
+        })
+
+        # Calculate Mood Stability (Percentage of 'balanced' days)
+        mood_data = []
+        for m_start in months:
+            m_end = (m_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            month_logs = [log for log in symptom_logs if m_start <= log.log_date <= m_end]
+            
+            stability_score = 0
+            if month_logs:
+                mood_logs = [log for log in month_logs if log.mood_metrics]
+                if mood_logs:
+                    balanced_count = sum(1 for log in mood_logs if "balanced" in log.mood_metrics)
+                    stability_score = (balanced_count / len(mood_logs)) * 10
+            
+            mood_data.append({"label": get_month_label(m_start), "value": round(stability_score, 1)})
+
+        symptom_trends.append({
+            "title": "Mood Stability",
+            "data": mood_data
+        })
+
         return {
             "phase_correlations": correlations,
             "symptom_fingerprints": fingerprints,
@@ -136,5 +189,6 @@ class InsightsService:
             "daily_insight": daily_insight,
             "recent_notes": recent_notes,
             "average_cycle_length": int(cycle_length),
-            "current_cycle_length": current_cycle_length
+            "current_cycle_length": current_cycle_length,
+            "symptom_trends": symptom_trends
         }

@@ -1,5 +1,7 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store'; // Refreshed import to trigger Metro re-scan
+import { resetToWelcome } from '../utils/navigation';
+import { showToast } from '../utils/toast';
 
 const API_URL = 'http://192.168.1.8:8000/api/v1';
 
@@ -12,12 +14,29 @@ const api = axios.create({
 
 // Add token to requests
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('token');
+  const token = await SecureStore.getItemAsync('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+// Response interceptor for handling 401 Unauthorized
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      console.log('Unauthorized request, clearing session...');
+      // Clear token and redirect to Welcome
+      await SecureStore.deleteItemAsync('token');
+      delete api.defaults.headers.common['Authorization'];
+      
+      showToast.error('Session expired', 'Please log in again to continue.');
+      resetToWelcome();
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authApi = {
   register: async (data: any) => {
@@ -35,20 +54,20 @@ export const authApi = {
     });
     
     if (response.data.access_token) {
-      await AsyncStorage.setItem('token', response.data.access_token);
+      await SecureStore.setItemAsync('token', response.data.access_token);
       // Force update the default header for the current instance
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
     }
     return response.data;
   },
   logout: async () => {
-    await AsyncStorage.removeItem('token');
+    await SecureStore.deleteItemAsync('token');
     delete api.defaults.headers.common['Authorization'];
   },
   socialLogin: async (email: string) => {
     const response = await api.post(`/auth/social-login?email=${encodeURIComponent(email)}`);
     if (response.data.access_token) {
-      await AsyncStorage.setItem('token', response.data.access_token);
+      await SecureStore.setItemAsync('token', response.data.access_token);
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
     }
     return response.data;
@@ -66,8 +85,9 @@ export const healthApi = {
     return response.data;
   },
 
-  getPredictions: async () => {
-    const response = await api.get('/health/predictions');
+  getPredictions: async (evaluationDate?: string) => {
+    const url = evaluationDate ? `/health/predictions?evaluation_date=${evaluationDate}` : '/health/predictions';
+    const response = await api.get(url);
     return response.data;
   },
 
@@ -120,6 +140,11 @@ export const healthApi = {
 
   getInsights: async () => {
     const response = await api.get('/health/insights');
+    return response.data;
+  },
+
+  deleteMyData: async () => {
+    const response = await api.delete('/health/data');
     return response.data;
   },
 };

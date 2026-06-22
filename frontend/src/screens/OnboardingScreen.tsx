@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Animated, Dimensions, Keyboard, TouchableWithoutFeedback, Platform, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Calendar, Target, ArrowRight, Droplets } from 'lucide-react-native';
+import { ChevronLeft, Calendar, Target, ArrowRight, Droplets, Shield } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { healthApi } from '../services/api';
 import { showToast } from '../utils/toast';
@@ -25,6 +25,12 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
     dob: '', // DD/MM/YYYY
     goal: 'track',
     cycleLength: '28',
+    notificationPrefs: {
+      period_reminder: true,
+      fertility_reminder: false,
+      daily_reminder: true,
+      water_reminder: false,
+    }
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerField, setDatePickerField] = useState<'dob'>('dob');
@@ -34,6 +40,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
   const fadeAnimStep1 = useRef(new Animated.Value(1)).current;
   const fadeAnimStep2 = useRef(new Animated.Value(0)).current;
   const fadeAnimStep3 = useRef(new Animated.Value(0)).current;
+  const fadeAnimStep4 = useRef(new Animated.Value(0)).current;
 
   const transitionToStep2 = () => {
     if (!data.dob || data.dob.length < 10) {
@@ -85,6 +92,27 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
     ]).start(() => setStep(3));
   };
 
+  const transitionToStep4 = () => {
+    Keyboard.dismiss();
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -width * 3,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnimStep3, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnimStep4, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setStep(4));
+  };
+
   const backToStep1 = () => {
     setShowDatePicker(false);
     Animated.parallel([
@@ -125,6 +153,26 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
         useNativeDriver: true,
       }),
     ]).start(() => setStep(2));
+  };
+
+  const backToStep3 = () => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -width * 2,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnimStep3, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnimStep4, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setStep(3));
   };
 
   const formatToISO = (dateStr: string) => {
@@ -168,6 +216,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
         last_period_date: format(new Date(), 'yyyy-MM-dd'), // Default to today since we removed the input
         average_cycle_length: parseInt(data.cycleLength) || 28,
         goal: data.goal,
+        notification_prefs: data.notificationPrefs,
       });
 
       navigation.navigate('Dashboard');
@@ -185,6 +234,23 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
     { id: 'avoid', label: 'Avoid pregnancy', description: 'Natural contraception support' },
   ];
 
+  const notificationOptions = [
+    { id: 'period_reminder', label: 'Period Reminder', description: '3 days before your period' },
+    { id: 'fertility_reminder', label: 'Fertility Window', description: 'When your fertile window starts' },
+    { id: 'daily_reminder', label: 'Daily Log Reminder', description: 'Evening reminder to log symptoms' },
+    { id: 'water_reminder', label: 'Hydration Reminder', description: 'Gentle nudges to drink water' },
+  ];
+
+  const toggleNotification = (id: string) => {
+    setData({
+      ...data,
+      notificationPrefs: {
+        ...data.notificationPrefs,
+        [id]: !data.notificationPrefs[id as keyof typeof data.notificationPrefs]
+      }
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -195,6 +261,7 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
                 onPress={() => {
                   if (step === 2) backToStep1();
                   else if (step === 3) backToStep2();
+                  else if (step === 4) backToStep3();
                 }} 
                 style={styles.backButton}
               >
@@ -202,14 +269,14 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
               </TouchableOpacity>
             )}
             <View style={styles.progressContainer}>
-              <View style={[styles.progressBar, { width: `${(step / 3) * 100}%` }]} />
+              <View style={[styles.progressBar, { width: `${(step / 4) * 100}%` }]} />
             </View>
           </View>
 
           <Animated.View 
             style={[
               styles.slideContainer, 
-              { transform: [{ translateX: slideAnim }], width: width * 3 }
+              { transform: [{ translateX: slideAnim }], width: width * 4 }
             ]}
           >
             {/* Step 1: Age */}
@@ -304,6 +371,45 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
                 onChangeText={(text) => setData({ ...data, cycleLength: text.replace(/\D/g, '') })}
                 maxLength={2}
               />
+
+              <TouchableOpacity 
+                style={styles.nextButton} 
+                onPress={transitionToStep4}
+              >
+                <Text style={styles.nextButtonText}>{t('onboarding.continue')}</Text>
+                <ArrowRight size={20} color={Colors.card} />
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Step 4: Notifications */}
+            <Animated.View style={[styles.stepWrapper, { opacity: fadeAnimStep4 }]}>
+              <View style={styles.iconCircle}>
+                <Shield size={32} color={Colors.primary} />
+              </View>
+              <Text style={styles.stepTitle}>Stay Informed</Text>
+              <Text style={styles.stepSubtitle}>
+                Select the reminders you'd like to receive. You can change these anytime in settings.
+              </Text>
+              
+              <View style={styles.goalsList}>
+                {notificationOptions.map((opt) => (
+                  <TouchableOpacity 
+                    key={opt.id}
+                    style={[styles.goalCard, data.notificationPrefs[opt.id as keyof typeof data.notificationPrefs] && styles.selectedGoal]}
+                    onPress={() => toggleNotification(opt.id)}
+                  >
+                    <View style={styles.goalTextWrapper}>
+                      <Text style={[styles.goalLabel, data.notificationPrefs[opt.id as keyof typeof data.notificationPrefs] && styles.selectedGoalLabel]}>
+                        {opt.label}
+                      </Text>
+                      <Text style={styles.goalDescription}>{opt.description}</Text>
+                    </View>
+                    <View style={[styles.checkCircle, data.notificationPrefs[opt.id as keyof typeof data.notificationPrefs] && { borderColor: Colors.primary }]}>
+                      {data.notificationPrefs[opt.id as keyof typeof data.notificationPrefs] && <View style={styles.checkInner} />}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
               <TouchableOpacity 
                 style={[styles.finishButton, loading && styles.disabledButton]} 

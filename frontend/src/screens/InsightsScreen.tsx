@@ -96,32 +96,23 @@ export default function InsightsScreen() {
         ))}
 
         {/* Symptom Trends Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <TrendingUp size={20} color={Colors.fertility} />
-            <Text style={styles.sectionTitle}>Symptom Trends (Last 3 Months)</Text>
+        {insights?.symptom_trends && insights.symptom_trends.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <TrendingUp size={20} color={Colors.fertility} />
+              <Text style={styles.sectionTitle}>Symptom Trends (Last 3 Months)</Text>
+            </View>
+            
+            {insights.symptom_trends.map((trend: any, index: number) => (
+              <SymptomTrendChart 
+                key={index}
+                title={trend.title} 
+                color={index === 0 ? Colors.period : Colors.fertility}
+                data={trend.data}
+              />
+            ))}
           </View>
-          
-          <SymptomTrendChart 
-            title="Cramps Intensity" 
-            color={Colors.period}
-            data={[
-              { label: 'April', value: 4 },
-              { label: 'May', value: 7 },
-              { label: 'June', value: 5 },
-            ]}
-          />
-
-          <SymptomTrendChart 
-            title="Mood Stability" 
-            color={Colors.fertility}
-            data={[
-              { label: 'April', value: 8 },
-              { label: 'May', value: 6 },
-              { label: 'June', value: 9 },
-            ]}
-          />
-        </View>
+        )}
 
         {/* Phase Correlations */}
         <View style={styles.section}>

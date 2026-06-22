@@ -4,6 +4,7 @@ import { Info, AlertCircle, Zap, ChevronDown } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
+import { CycleRing } from './CycleRing';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -46,7 +47,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
             <Text style={[styles.phaseText, { color: themeColor }]}>
               {t(`phases.${currentPhase.toLowerCase()}`)} Phase
             </Text>
-            <Text style={styles.dayText}>Day {cycleDay}</Text>
+            <Text style={styles.phaseSubtitle}>Your body is in its natural rhythm</Text>
           </View>
           <View style={styles.predictionInfo}>
             <Text style={styles.predictionTitle}>
@@ -58,19 +59,14 @@ export const StatusCard: React.FC<StatusCardProps> = ({
           </View>
         </View>
 
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBarBg}>
-            <View 
-              style={[
-                styles.progressBarFill, 
-                { width: `${progress * 100}%`, backgroundColor: themeColor }
-              ]} 
-            />
-          </View>
-          <View style={styles.progressLabels}>
-            <Text style={styles.progressLabel}>Day 1</Text>
-            <Text style={styles.progressLabel}>Day {cycleLength}</Text>
-          </View>
+        <View style={styles.ringContainer}>
+          <CycleRing 
+            size={SCREEN_WIDTH * 0.55}
+            progress={progress}
+            currentPhase={currentPhase}
+            themeColor={themeColor}
+            cycleDay={cycleDay}
+          />
         </View>
 
         <View style={styles.footer}>
@@ -116,66 +112,56 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 12,
     elevation: 3,
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.lg,
+    width: '100%',
+    marginBottom: Spacing.xl,
   },
   phaseText: {
     fontSize: 14,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  dayText: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: Colors.text,
+  phaseSubtitle: {
+    fontSize: 11,
+    color: Colors.textLight,
+    fontWeight: '600',
   },
   predictionInfo: {
     alignItems: 'flex-end',
   },
   predictionTitle: {
-    fontSize: 12,
+    fontSize: 10,
     color: Colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 2,
   },
   predictionDays: {
     fontSize: 18,
     fontWeight: '800',
   },
-  progressContainer: {
-    marginBottom: Spacing.md,
-  },
-  progressBarBg: {
-    height: 12,
-    backgroundColor: Colors.border,
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  progressLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 6,
-  },
-  progressLabel: {
-    fontSize: 10,
-    color: Colors.textLight,
-    fontWeight: '600',
+  ringContainer: {
+    marginVertical: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Spacing.sm,
+    width: '100%',
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
   windowText: {
     fontSize: 12,
@@ -191,6 +177,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: Spacing.sm,
     gap: Spacing.sm,
+    justifyContent: 'center',
   },
   badge: {
     flexDirection: 'row',

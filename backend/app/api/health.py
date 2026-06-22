@@ -53,6 +53,7 @@ def get_profile(
 
 @router.get("/predictions", response_model=schemas.PredictionResponse)
 def get_predictions(
+    evaluation_date: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -62,6 +63,8 @@ def get_predictions(
     
     if not db_profile or not db_profile.last_period_date:
         raise HTTPException(status_code=400, detail="Profile or last period date missing")
+    
+    eval_date = evaluation_date or date.today()
     
     # 1. Get historical cycle logs for baseline metrics
     cycle_logs = db.query(models.CycleLog).filter(
@@ -73,11 +76,12 @@ def get_predictions(
     period_length = metrics["median_period_length"]
     variation = metrics["cycle_variation"]
     
-    # 2. Get recent symptom logs (last 30 days) for physiological overrides
-    thirty_days_ago = date.today() - timedelta(days=30)
+    # 2. Get recent symptom logs (relative to evaluation date) for physiological overrides
+    search_start = eval_date - timedelta(days=30)
     recent_symptoms = db.query(models.SymptomLog).filter(
         models.SymptomLog.user_uuid == current_user.uuid,
-        models.SymptomLog.log_date >= thirty_days_ago
+        models.SymptomLog.log_date >= search_start,
+        models.SymptomLog.log_date <= eval_date
     ).all()
     
     # 3. Calculate phases with dynamic engine
@@ -87,7 +91,8 @@ def get_predictions(
         period_length=period_length,
         recent_logs=recent_symptoms,
         variation=variation,
-        historical_cycles=cycle_logs
+        historical_cycles=cycle_logs,
+        evaluation_date=eval_date
     )
     
     # 4. Predict future cycles
@@ -98,7 +103,7 @@ def get_predictions(
     
     # 5. Determine current phase
     current_phase = CycleEngine.get_current_phase(
-        date.today(), 
+        eval_date, 
         predictions
     )
     
@@ -232,3 +237,29 @@ def get_cycle_logs(
     return db.query(models.CycleLog).filter(
         models.CycleLog.user_uuid == current_user.uuid
     ).order_by(models.CycleLog.start_date.desc()).all()
+
+@router.delete("/data")
+def delete_user_data(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Permanently deletes all health-related data for the current user (GDPR Right to be Forgotten).
+    """
+    # 1. Delete Symptom Logs
+    db.query(models.SymptomLog).filter(
+        models.SymptomLog.user_uuid == current_user.uuid
+    ).delete()
+    
+    # 2. Delete Cycle Logs
+    db.query(models.CycleLog).filter(
+        models.CycleLog.user_uuid == current_user.uuid
+    ).delete()
+    
+    # 3. Delete Health Profile
+    db.query(models.HealthProfile).filter(
+        models.HealthProfile.user_uuid == current_user.uuid
+    ).delete()
+    
+    db.commit()
+    return {"message": "All user data has been permanently deleted"}

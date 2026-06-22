@@ -9,7 +9,8 @@ class CycleEngine:
         period_length: int = 5,
         recent_logs: List[Any] = None,
         variation: float = 0,
-        historical_cycles: List[Any] = None
+        historical_cycles: List[Any] = None,
+        evaluation_date: date = date.today()
     ) -> Dict:
         """
         Calculates cycle phases with dynamic symptom overrides and prediction windows.
@@ -38,7 +39,7 @@ class CycleEngine:
             
             for log in sorted_logs:
                 # 1. Ovulation Signals (Cervical Mucus / LH Tests)
-                if (date.today() - log.log_date).days <= 5: # Extended window for fertile signs
+                if (evaluation_date - log.log_date).days <= 5: # Extended window for fertile signs
                     lifestyle = log.lifestyle_metrics or {}
                     if lifestyle.get("cervical_mucus") == "egg_white" or lifestyle.get("ovulation_test") == "positive":
                         ovulation_date = log.log_date
@@ -48,12 +49,12 @@ class CycleEngine:
                         break
                 
                 # 2. Luteal Pain Wave (Pattern Matching)
-                days_into_cycle = (date.today() - last_period_date).days
+                days_into_cycle = (evaluation_date - last_period_date).days
                 if days_into_cycle > (cycle_length - 7): # Last week of cycle
                     pain = log.pain_metrics or {}
                     if pain.get("tender_breasts", 0) >= 2 or pain.get("cramps", 0) >= 2:
                         # Predict period sooner if symptoms are strong
-                        next_period_date = date.today() + timedelta(days=2)
+                        next_period_date = evaluation_date + timedelta(days=2)
                         is_override = True
                         override_reason = "luteal_pattern"
                         break

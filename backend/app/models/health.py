@@ -22,6 +22,14 @@ class HealthProfile(Base):
     # Preferences
     goal = Column(String, nullable=True) # e.g., "track_cycle", "get_pregnant", "avoid_pregnancy"
     
+    # Notification Preferences
+    notification_prefs = Column(JSON, default={
+        "period_reminder": True,
+        "fertility_reminder": False,
+        "daily_reminder": True,
+        "water_reminder": False
+    })
+    
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class CycleLog(Base):

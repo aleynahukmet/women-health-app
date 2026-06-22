@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { navigationRef } from './src/utils/navigation';
 import Toast from 'react-native-toast-message';
 import './src/i18n';
 import { Colors } from './src/theme/theme';
@@ -28,7 +29,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <Stack.Navigator 
             initialRouteName="Welcome"
             screenOptions={{
