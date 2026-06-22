@@ -68,21 +68,26 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
 
   const handleSocialLogin = async (email: string) => {
     setShowSocialPicker(false);
+    console.log('Starting social login for:', email);
     
     try {
       setLoading(true);
       // Call our new social login endpoint to get a real JWT token
       const response = await authApi.socialLogin(email);
-      console.log('Social login success:', response);
+      console.log('Social login success, token received');
       
       try {
+        console.log('Fetching profile...');
         const profile = await healthApi.getProfile();
+        console.log('Profile found, navigating to Dashboard');
         if (profile) {
           navigation.navigate('Dashboard');
         } else {
+          console.log('Profile null, navigating to Onboarding');
           navigation.navigate('Onboarding', { email, mode: 'social', provider: socialType });
         }
       } catch (e) {
+        console.log('Profile not found or error, navigating to Onboarding');
         navigation.navigate('Onboarding', { email, mode: 'social', provider: socialType });
       }
       

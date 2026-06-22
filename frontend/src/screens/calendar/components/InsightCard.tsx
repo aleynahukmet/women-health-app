@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     padding: 24,
+    paddingBottom: 32, // Increased bottom padding for better balance
     borderLeftWidth: 6,
     shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },

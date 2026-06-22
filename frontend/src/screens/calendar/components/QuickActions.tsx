@@ -7,13 +7,13 @@ import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 interface QuickActionsProps {
   onLogSymptoms: () => void;
   onLogPeriod: () => void;
-  onViewCalendar?: () => void;
   onViewInsights?: () => void;
   currentPhase?: string;
   onStartPeriod?: () => void;
   onEndPeriod?: () => void;
   onAddNotes?: () => void;
   isActionLoading?: boolean;
+  predictions?: any;
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({ 
@@ -25,125 +25,141 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   onEndPeriod,
   onAddNotes,
   isActionLoading = false,
+  predictions,
 }) => {
   const { t } = useTranslation();
-  const isPeriod = currentPhase === 'Menstrual';
+  const isPeriodActive = currentPhase === 'Menstrual';
+  
+  // Check if period is already logged (has both start and end date)
+  const isPeriodLogged = predictions?.current_cycle?.menstrual_phase?.end && 
+                        new Date(predictions.current_cycle.menstrual_phase.end) <= new Date();
 
   return (
-    <View style={styles.section}>
-      {/* Main Period Action Button */}
-      <TouchableOpacity 
-        style={[
-          styles.mainActionButton, 
-          { backgroundColor: isPeriod ? Colors.fertility : Colors.period }
-        ]} 
-        onPress={isPeriod ? onEndPeriod : onStartPeriod}
-        disabled={isActionLoading}
-      >
-        {isActionLoading ? (
-          <ActivityIndicator color={Colors.card} />
-        ) : (
-          <>
-            <CalendarIcon size={24} color={Colors.card} />
-            <Text style={styles.mainActionLabel}>
-              {isPeriod ? 'End Period' : 'Start Period'}
-            </Text>
-          </>
-        )}
-      </TouchableOpacity>
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>Daily Tracking</Text>
+      
+      {/* 2x2 Elegant Action Grid */}
+      <View style={styles.grid}>
+        
+        {/* Period Status Button - Minimalist & Smart */}
+        <TouchableOpacity 
+          style={[
+            styles.gridCard, 
+            isPeriodActive && { borderColor: Colors.period, backgroundColor: Colors.period + '08' },
+            isPeriodLogged && { borderColor: Colors.success, backgroundColor: Colors.success + '08' }
+          ]} 
+          onPress={isPeriodActive ? onEndPeriod : onStartPeriod}
+          disabled={isActionLoading || isPeriodLogged}
+        >
+          <View style={[
+            styles.iconContainer, 
+            { backgroundColor: isPeriodLogged ? Colors.success + '20' : (isPeriodActive ? Colors.period + '20' : Colors.border) }
+          ]}>
+            <CalendarIcon size={20} color={isPeriodLogged ? Colors.success : (isPeriodActive ? Colors.period : Colors.textSecondary)} />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.cardTitle}>Period State</Text>
+            {isActionLoading ? (
+              <ActivityIndicator size="small" color={Colors.period} style={{ alignSelf: 'flex-start', marginTop: 2 }} />
+            ) : (
+              <Text style={[
+                styles.cardActionText, 
+                { color: isPeriodLogged ? Colors.success : (isPeriodActive ? Colors.period : Colors.text) }
+              ]}>
+                {isPeriodLogged ? 'Period Logged' : (isPeriodActive ? 'End Period' : 'Start Period')}
+              </Text>
+            )}
+          </View>
+        </TouchableOpacity>
 
-      <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.smallActionButton} onPress={onLogSymptoms}>
-          <View style={[styles.smallActionIcon, { backgroundColor: Colors.fertility + '15' }]}>
+        {/* Symptoms Button */}
+        <TouchableOpacity style={styles.gridCard} onPress={onLogSymptoms}>
+          <View style={[styles.iconContainer, { backgroundColor: Colors.fertility + '15' }]}>
             <Plus size={20} color={Colors.fertility} />
           </View>
-          <Text style={styles.smallActionLabel}>Log Symptoms</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.smallActionButton} onPress={onAddNotes}>
-          <View style={[styles.smallActionIcon, { backgroundColor: Colors.period + '15' }]}>
-            <BookOpen size={20} color={Colors.period} />
+          <View style={styles.textContainer}>
+            <Text style={styles.cardTitle}>Symptoms</Text>
+            <Text style={[styles.cardActionText, { color: Colors.fertility }]}>Log Today</Text>
           </View>
-          <Text style={styles.smallActionLabel}>Add Notes</Text>
         </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity 
-        style={styles.insightsButton} 
-        onPress={onViewInsights}
-      >
-        <TrendingUp size={18} color={Colors.textSecondary} />
-        <Text style={styles.insightsLabel}>View Detailed Insights</Text>
-      </TouchableOpacity>
+        {/* Journal Button */}
+        <TouchableOpacity style={styles.gridCard} onPress={onAddNotes}>
+          <View style={[styles.iconContainer, { backgroundColor: Colors.follicular + '20' }]}>
+            <BookOpen size={20} color={Colors.follicular} />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.cardTitle}>Journal</Text>
+            <Text style={styles.cardActionText}>Add Notes</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Analytics Button */}
+        <TouchableOpacity style={styles.gridCard} onPress={onViewInsights}>
+          <View style={[styles.iconContainer, { backgroundColor: Colors.textSecondary + '15' }]}>
+            <TrendingUp size={20} color={Colors.textSecondary} />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.cardTitle}>Analytics</Text>
+            <Text style={[styles.cardActionText, { color: Colors.textSecondary }]}>View Trends</Text>
+          </View>
+        </TouchableOpacity>
+
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: 32,
-    paddingHorizontal: 4,
+  container: {
+    marginBottom: 28,
   },
-  mainActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 18,
-    borderRadius: BorderRadius.xl,
-    marginBottom: 20,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  mainActionLabel: {
-    color: Colors.card,
-    fontSize: 18,
+  sectionTitle: {
+    fontSize: 16,
     fontWeight: '800',
-    marginLeft: 12,
+    color: Colors.text,
+    marginBottom: 14,
+    letterSpacing: 0.3,
   },
-  actionRow: {
+  grid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: 12,
   },
-  smallActionButton: {
-    flex: 1,
+  gridCard: {
+    width: '48%',
     backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    padding: 12,
+    borderRadius: BorderRadius.xl,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
   },
-  smallActionIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
-  smallActionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.text,
+  textContainer: {
     flex: 1,
-  },
-  insightsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
-    padding: 12,
   },
-  insightsLabel: {
-    fontSize: 13,
+  cardTitle: {
+    fontSize: 11,
     fontWeight: '600',
-    color: Colors.textSecondary,
-    marginLeft: 8,
-    textDecorationLine: 'underline',
+    color: Colors.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  cardActionText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.text,
   },
 });

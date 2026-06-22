@@ -55,7 +55,7 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
       const startStr = format(modalStart, 'yyyy-MM-dd');
       
       if (modalEnd) {
-        // Both start and end selected: Draw solid period block
+        // Both start and end selected: Draw solid period block (Capsule)
         const range = eachDayOfInterval({
           start: modalStart < modalEnd ? modalStart : modalEnd,
           end: modalStart < modalEnd ? modalEnd : modalStart
@@ -63,9 +63,12 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
 
         range.forEach((day, index) => {
           const dateStr = format(day, 'yyyy-MM-dd');
+          const isFirst = index === 0;
+          const isLast = index === range.length - 1;
+          
           marks[dateStr] = {
-            startingDay: index === 0,
-            endingDay: index === range.length - 1,
+            startingDay: isFirst,
+            endingDay: isLast,
             color: Colors.period,
             textColor: Colors.card,
           };
@@ -74,7 +77,7 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
         // ONLY START SELECTED: Highlight start, project future days as shadow
         marks[startStr] = {
           startingDay: true,
-          endingDay: false,
+          endingDay: false, // Explicitly false to allow connection
           color: Colors.period,
           textColor: Colors.card,
         };
@@ -83,11 +86,13 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
         for (let i = 1; i < averagePeriodLength; i++) {
           const projectedDay = addDays(modalStart, i);
           const projectedDateStr = format(projectedDay, 'yyyy-MM-dd');
+          const isLastProjected = i === averagePeriodLength - 1;
           
           marks[projectedDateStr] = {
+            startingDay: false,
+            endingDay: isLastProjected,
             color: Colors.period + '30', // 30% opacity shadow
             textColor: Colors.period,
-            endingDay: i === averagePeriodLength - 1,
           };
         }
       }

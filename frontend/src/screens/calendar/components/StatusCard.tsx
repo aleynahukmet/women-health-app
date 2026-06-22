@@ -29,6 +29,10 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   const { is_irregular, is_override, override_reason, prediction_window } = predictions;
   const cycleDay = differenceInDays(new Date(), parseISO(predictions.current_cycle.menstrual_phase.start)) + 1;
   
+  const menstrualEnd = parseISO(predictions.current_cycle.menstrual_phase.end);
+  const today = new Date();
+  const periodDaysLeft = Math.max(0, differenceInDays(menstrualEnd, today) + 1);
+
   const cycleLength = predictions.average_cycle_length || 28;
   const progress = Math.min(cycleDay / cycleLength, 1);
 
@@ -49,7 +53,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
               {isPeriod ? 'Period ends in' : 'Next period in'}
             </Text>
             <Text style={[styles.predictionDays, { color: themeColor }]}>
-              {Math.abs(daysUntilPeriod)} days
+              {isPeriod ? `${periodDaysLeft} days` : `${Math.abs(daysUntilPeriod)} days`}
             </Text>
           </View>
         </View>

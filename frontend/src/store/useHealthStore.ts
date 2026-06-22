@@ -153,13 +153,9 @@ export const useHealthStore = create<HealthState>((set, get) => ({
     try {
       const newLog = await healthApi.saveCycleLog(cycle);
       set((state) => {
-        const existingIndex = state.cycleLogs.findIndex(l => l.start_date === newLog.start_date);
-        const newLogs = [...state.cycleLogs];
-        if (existingIndex >= 0) {
-          newLogs[existingIndex] = newLog;
-        } else {
-          newLogs.unshift(newLog);
-        }
+        // If the updated log exists in the list, remove old and insert new
+        const newLogs = state.cycleLogs.filter(l => l.id !== newLog.id);
+        newLogs.unshift(newLog);
         return { cycleLogs: newLogs, loading: false };
       });
       get().fetchPredictions();

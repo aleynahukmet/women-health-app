@@ -70,6 +70,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
   // Period Logging Modal State
   const [modalStart, setModalStart] = useState<Date | null>(null);
   const [modalEnd, setModalEnd] = useState<Date | null>(null);
+  const [editingLogId, setEditingLogId] = useState<number | null>(null);
 
   // Bottom Sheet Refs
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -138,10 +139,12 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     if (existingLog) {
       setModalStart(parseISO(existingLog.start_date));
       setModalEnd(existingLog.end_date ? parseISO(existingLog.end_date) : null);
+      setEditingLogId(existingLog.id); // Store the ID being edited
     } else {
       // IF NEW ENTRY: Open with null dates to prevent auto-selecting today
       setModalStart(null);
       setModalEnd(null);
+      setEditingLogId(null); // New entry
     }
     setIsPeriodModalVisible(true);
   };
@@ -183,12 +186,13 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
       await logCycle({
         start_date: format(modalStart, 'yyyy-MM-dd'),
         end_date: format(modalEnd, 'yyyy-MM-dd'),
-        intensity: 'medium'
+        intensity: 'medium',
+        id: editingLogId || undefined // Send ID if exists, backend will update automatically
       });
       setIsPeriodModalVisible(false);
       await fetchPredictions();
       await fetchCycleLogs();
-      showToast.success('Period saved successfully');
+      showToast.success('Period updated successfully');
     } catch (error) {
       showToast.error('Failed to save period.');
     } finally {
@@ -362,6 +366,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
           onEndPeriod={handleEndPeriod}
           onAddNotes={handleOpenNotes}
           isActionLoading={isActionLoading}
+          predictions={predictions}
         />
 
         <InsightCard 

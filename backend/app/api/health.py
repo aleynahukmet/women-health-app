@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from datetime import date, datetime, timedelta
 
 from app.db.session import get_db
@@ -187,10 +187,24 @@ def get_history(
 @router.post("/cycle-logs", response_model=schemas.CycleLog)
 def log_cycle(
     cycle_in: schemas.CycleLogCreate, 
+    id: Optional[int] = None, # Added optional ID for smart updates
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Check if a log already exists for this start date
+    # 1. If frontend sent an ID, find that record and overwrite even if dates changed
+    if id:
+        db_cycle = db.query(models.CycleLog).filter(
+            models.CycleLog.user_uuid == current_user.uuid,
+            models.CycleLog.id == id
+        ).first()
+        if db_cycle:
+            for var, value in cycle_in.dict(exclude_unset=True).items():
+                setattr(db_cycle, var, value)
+            db.commit()
+            db.refresh(db_cycle)
+            return db_cycle
+
+    # 2. If no ID (New entry), continue with old logic
     db_cycle = db.query(models.CycleLog).filter(
         models.CycleLog.user_uuid == current_user.uuid,
         models.CycleLog.start_date == cycle_in.start_date

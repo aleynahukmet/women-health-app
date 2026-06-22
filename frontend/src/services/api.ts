@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://172.20.10.2:8000/api/v1';
+const API_URL = 'http://192.168.1.8:8000/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -106,8 +106,10 @@ export const healthApi = {
     start_date: string;
     end_date?: string;
     intensity?: string;
+    id?: number; // Update support
   }) => {
-    const response = await api.post('/health/cycle-logs', data);
+    const url = data.id ? `/health/cycle-logs?id=${data.id}` : '/health/cycle-logs';
+    const response = await api.post(url, data);
     return response.data;
   },
 

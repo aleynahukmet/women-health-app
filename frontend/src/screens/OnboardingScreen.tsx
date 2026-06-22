@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(61, 64, 91, 0.4)', // Softer, themed backdrop
   },
   pickerContainer: {
     backgroundColor: Colors.card,
