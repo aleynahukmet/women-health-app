@@ -4,6 +4,82 @@ import { ChevronLeft, ChevronRight, Leaf } from 'lucide-react-native';
 import { format, isSameDay, isWithinInterval, parseISO } from 'date-fns';
 import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
 
+const styles = StyleSheet.create({
+  calendarStrip: {
+    paddingVertical: 12,
+    backgroundColor: Colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  stripHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    marginBottom: 12,
+  },
+  stripMonthText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  calendarScroll: {
+    paddingHorizontal: 16,
+  },
+  calendarDay: {
+    width: 50,
+    height: 70,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+    position: 'relative',
+  },
+  ovulationIndicator: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: Colors.card,
+    borderRadius: 8,
+    padding: 2,
+    zIndex: 10,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 2,
+  },
+  dayName: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+    fontWeight: '600',
+  },
+  dayNum: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  todayDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 4,
+  },
+  logDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 4,
+    opacity: 0.5,
+  },
+});
+
 interface CalendarStripProps {
   viewDate: Date;
   selectedDate: Date;
@@ -129,79 +205,3 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  calendarStrip: {
-    paddingVertical: 12,
-    backgroundColor: Colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  stripHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    marginBottom: 12,
-  },
-  stripMonthText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.text,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  calendarScroll: {
-    paddingHorizontal: 16,
-  },
-  calendarDay: {
-    width: 50,
-    height: 70,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.background,
-    position: 'relative',
-  },
-  ovulationIndicator: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 2,
-    zIndex: 10,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
-    elevation: 2,
-  },
-  dayName: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-    fontWeight: '600',
-  },
-  dayNum: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.text,
-  },
-  todayDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    marginTop: 4,
-  },
-  logDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    marginTop: 4,
-    opacity: 0.5,
-  },
-});

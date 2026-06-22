@@ -4,6 +4,60 @@ import { Calendar as CalendarIcon, Plus, TrendingUp, BookOpen } from 'lucide-rea
 import { useTranslation } from 'react-i18next';
 import { Colors as StaticColors, Spacing, BorderRadius, useTheme } from '../../../theme/theme';
 
+const createStyles = (Colors: any) => StyleSheet.create({
+  container: {
+    marginBottom: 28,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.text,
+    marginBottom: 8,
+    letterSpacing: 0.3,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  gridCard: {
+    width: '48%',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  textContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  cardActionText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+});
+
 interface QuickActionsProps {
   onLogSymptoms: () => void;
   onLogPeriod: () => void;
@@ -111,57 +165,3 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
     </View>
   );
 };
-
-const createStyles = (Colors: any) => StyleSheet.create({
-  container: {
-    marginBottom: 28,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.text,
-    marginBottom: 8,
-    letterSpacing: 0.3,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  gridCard: {
-    width: '48%',
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.xl,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  textContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  cardTitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.textLight,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  cardActionText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.text,
-  },
-});

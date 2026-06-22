@@ -77,7 +77,10 @@ export const useHealthStore = create<HealthState>()(
 
         if (!get().loading) set({ loading: true, error: null });
         try {
-          const predictions = await healthApi.getPredictions(evaluationDate);
+          // Always send the current local date if evaluationDate is not provided
+          // to avoid server-side timezone shifts (e.g. server in UTC vs user in local time)
+          const dateToSend = evaluationDate || new Date().toISOString().split('T')[0];
+          const predictions = await healthApi.getPredictions(dateToSend);
           set({ predictions, loading: false });
         } catch (error: any) {
           set({ error: error.message, loading: false });

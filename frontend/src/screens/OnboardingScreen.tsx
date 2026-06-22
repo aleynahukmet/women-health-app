@@ -11,9 +11,205 @@ import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
-type OnboardingScreenProps = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
-
 const { width } = Dimensions.get('window');
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(61, 64, 91, 0.4)', // Softer, themed backdrop
+  },
+  pickerContainer: {
+    backgroundColor: Colors.card,
+    borderTopLeftRadius: BorderRadius.lg,
+    borderTopRightRadius: BorderRadius.lg,
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
+  pickerHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  doneButtonText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  headerNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 20,
+    height: 60,
+  },
+  backButton: {
+    marginRight: Spacing.md,
+  },
+  progressContainer: {
+    flex: 1,
+    height: 6,
+    backgroundColor: Colors.border,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 3,
+  },
+  slideContainer: {
+    flexDirection: 'row',
+    width: width * 3,
+    flex: 1,
+  },
+  stepWrapper: {
+    width: width,
+    padding: Spacing.lg,
+    paddingTop: 40,
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 32,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  stepTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  stepSubtitle: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 48,
+    paddingHorizontal: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  dateInput: {
+    width: '100%',
+    backgroundColor: Colors.card,
+    padding: 20,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 40,
+  },
+  dateInputText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  nextButton: {
+    flexDirection: 'row',
+    backgroundColor: Colors.primary,
+    width: '100%',
+    padding: 18,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nextButtonText: {
+    color: Colors.card,
+    fontSize: 18,
+    fontWeight: '700',
+    marginRight: 8,
+  },
+  goalsList: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  goalCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.card,
+    padding: 20,
+    borderRadius: BorderRadius.lg,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectedGoal: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.background,
+  },
+  goalTextWrapper: {
+    flex: 1,
+  },
+  goalLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  selectedGoalLabel: {
+    color: Colors.primary,
+  },
+  goalDescription: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  checkCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Colors.primary,
+  },
+  finishButton: {
+    backgroundColor: Colors.primary,
+    width: '100%',
+    padding: 18,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  finishButtonText: {
+    color: Colors.card,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  disabledButton: {
+    backgroundColor: Colors.textLight,
+    opacity: 0.7,
+  },
+});
 
 export default function OnboardingScreen({ navigation, route }: OnboardingScreenProps) {
   const { t } = useTranslation();
@@ -465,201 +661,3 @@ export default function OnboardingScreen({ navigation, route }: OnboardingScreen
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(61, 64, 91, 0.4)', // Softer, themed backdrop
-  },
-  pickerContainer: {
-    backgroundColor: Colors.card,
-    borderTopLeftRadius: BorderRadius.lg,
-    borderTopRightRadius: BorderRadius.lg,
-    paddingBottom: 40,
-    alignItems: 'center',
-  },
-  pickerHeader: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  doneButtonText: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  headerNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: 20,
-    height: 60,
-  },
-  backButton: {
-    marginRight: Spacing.md,
-  },
-  progressContainer: {
-    flex: 1,
-    height: 6,
-    backgroundColor: Colors.border,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 3,
-  },
-  slideContainer: {
-    flexDirection: 'row',
-    width: width * 3,
-    flex: 1,
-  },
-  stepWrapper: {
-    width: width,
-    padding: Spacing.lg,
-    paddingTop: 40,
-    alignItems: 'center',
-  },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 32,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  stepTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  stepSubtitle: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 48,
-    paddingHorizontal: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  dateInput: {
-    width: '100%',
-    backgroundColor: Colors.card,
-    padding: 20,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 40,
-  },
-  dateInputText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  nextButton: {
-    flexDirection: 'row',
-    backgroundColor: Colors.primary,
-    width: '100%',
-    padding: 18,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nextButtonText: {
-    color: Colors.card,
-    fontSize: 18,
-    fontWeight: '700',
-    marginRight: 8,
-  },
-  goalsList: {
-    width: '100%',
-    marginBottom: 32,
-  },
-  goalCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.card,
-    padding: 20,
-    borderRadius: BorderRadius.lg,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  selectedGoal: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.background,
-  },
-  goalTextWrapper: {
-    flex: 1,
-  },
-  goalLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  selectedGoalLabel: {
-    color: Colors.primary,
-  },
-  goalDescription: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  checkCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Colors.primary,
-  },
-  finishButton: {
-    backgroundColor: Colors.primary,
-    width: '100%',
-    padding: 18,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  finishButtonText: {
-    color: Colors.card,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  disabledButton: {
-    backgroundColor: Colors.textLight,
-    opacity: 0.7,
-  },
-});

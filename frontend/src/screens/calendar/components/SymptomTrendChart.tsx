@@ -1,7 +1,30 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Rect, G, Line, Text as SvgText } from 'react-native-svg';
-import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
+import { Colors, Spacing, BorderRadius, useTheme } from '../../../theme/theme';
+
+const createStyles = (Colors: any) => StyleSheet.create({
+  container: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: 20,
+    marginBottom: 24,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 20,
+  },
+  chartWrapper: {
+    alignItems: 'center',
+  },
+});
 
 const { width } = Dimensions.get('window');
 
@@ -12,6 +35,8 @@ interface SymptomTrendChartProps {
 }
 
 export const SymptomTrendChart: React.FC<SymptomTrendChartProps> = ({ title, data, color }) => {
+  const { colors: Colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors), [Colors]);
   const chartHeight = 150;
   const chartWidth = width - Spacing.lg * 4;
   const barWidth = 30;
@@ -82,26 +107,3 @@ export const SymptomTrendChart: React.FC<SymptomTrendChartProps> = ({ title, dat
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 20,
-  },
-  chartWrapper: {
-    alignItems: 'center',
-  },
-});

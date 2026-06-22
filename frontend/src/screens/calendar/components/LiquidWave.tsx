@@ -11,6 +11,15 @@ import Animated, {
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
+const styles = StyleSheet.create({
+  container: {
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+
 interface LiquidWaveProps {
   size: number;
   progress: number; // 0 to 1
@@ -79,12 +88,3 @@ export const LiquidWave: React.FC<LiquidWaveProps> = ({ size, progress, color })
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    overflow: 'hidden',
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

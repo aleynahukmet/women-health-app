@@ -9,6 +9,115 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 
+const createStyles = (Colors: any, isDark: boolean) => StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: Colors.card,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    minHeight: '70%',
+    paddingBottom: 40,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  scrollContent: {
+    padding: 24,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 16,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  menuLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  menuSubtitle: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 2,
+  },
+  privacyInfo: {
+    flexDirection: 'row',
+    backgroundColor: isDark ? '#2A2A2A' : Colors.background,
+    padding: 16,
+    borderRadius: BorderRadius.md,
+    alignItems: 'flex-start',
+  },
+  privacyText: {
+    flex: 1,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginLeft: 12,
+    lineHeight: 18,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingTop: 20,
+  },
+  versionText: {
+    fontSize: 12,
+    color: Colors.textLight,
+  },
+  toggle: {
+    width: 44,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: Colors.border,
+    padding: 2,
+  },
+  toggleActive: {
+    backgroundColor: Colors.fertility,
+  },
+  toggleCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.card,
+  },
+  toggleCircleActive: {
+    transform: [{ translateX: 22 }],
+  },
+});
+
 interface SettingsModalProps {
   visible: boolean;
   onClose: () => void;
@@ -254,112 +363,3 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     </Modal>
   );
 };
-
-const createStyles = (Colors: any, isDark: boolean) => StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: Colors.card,
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    minHeight: '70%',
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.text,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  scrollContent: {
-    padding: 24,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.textLight,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 16,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  menuLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  menuSubtitle: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginTop: 2,
-  },
-  privacyInfo: {
-    flexDirection: 'row',
-    backgroundColor: isDark ? '#2A2A2A' : Colors.background,
-    padding: 16,
-    borderRadius: BorderRadius.md,
-    alignItems: 'flex-start',
-  },
-  privacyText: {
-    flex: 1,
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginLeft: 12,
-    lineHeight: 18,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingTop: 20,
-  },
-  versionText: {
-    fontSize: 12,
-    color: Colors.textLight,
-  },
-  toggle: {
-    width: 44,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: Colors.border,
-    padding: 2,
-  },
-  toggleActive: {
-    backgroundColor: Colors.fertility,
-  },
-  toggleCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: Colors.card,
-  },
-  toggleCircleActive: {
-    transform: [{ translateX: 22 }],
-  },
-});

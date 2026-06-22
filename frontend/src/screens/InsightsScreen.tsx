@@ -15,248 +15,6 @@ import { showToast } from '../utils/toast';
 const { width } = Dimensions.get('window');
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.8:8000/api/v1';
 
-export default function InsightsScreen() {
-  const { t } = useTranslation();
-  const { colors: Colors, isDark } = useTheme();
-  const styles = React.useMemo(() => createStyles(Colors, isDark), [Colors, isDark]);
-  const [downloading, setDownloading] = React.useState(false);
-  const { insights, loading, fetchInsights } = useHealthStore(useShallow((state) => ({
-    insights: state.insights,
-    loading: state.loading,
-    fetchInsights: state.fetchInsights,
-  })));
-
-  useEffect(() => {
-    fetchInsights();
-  }, []);
-
-  const handleDownloadReport = async () => {
-    try {
-      setDownloading(true);
-      const token = await SecureStore.getItemAsync('token');
-      
-      if (!token) {
-        showToast.error('Authentication Error', 'Please log in again.');
-        return;
-      }
-
-      const filename = `doctor_report_${new Date().toISOString().split('T')[0]}.pdf`;
-      const fileUri = FileSystem.documentDirectory + filename;
-
-      const downloadRes = await FileSystem.downloadAsync(
-        `${API_URL}/health/report`,
-        fileUri,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (downloadRes.status !== 200) {
-        throw new Error('Failed to download report');
-      }
-
-      showToast.success('Report Generated', 'Your health report is ready.');
-      
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(downloadRes.uri);
-      } else {
-        showToast.info('Download Complete', `Saved to: ${downloadRes.uri}`);
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      showToast.error('Report Error', 'Could not generate PDF report. Please try again.');
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  if (loading && !insights) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const toTitleCase = (str: string) => {
-    return str.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Wellness Trends</Text>
-        <TouchableOpacity 
-          style={styles.downloadButton} 
-          onPress={handleDownloadReport}
-          disabled={downloading}
-        >
-          {downloading ? (
-            <ActivityIndicator size="small" color={Colors.primary} />
-          ) : (
-            <>
-              <FileText size={18} color={Colors.primary} />
-              <Text style={styles.downloadButtonText}>Doctor Report</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Smart Cycle Comparison */}
-        {insights?.average_cycle_length && insights?.current_cycle_length && (
-          <View style={styles.comparisonCard}>
-            <TrendingUp size={24} color={Colors.primary} />
-            <View style={styles.comparisonTextWrapper}>
-              <Text style={styles.comparisonTitle}>Cycle Analysis</Text>
-              <Text style={styles.comparisonText}>
-                Your current cycle is{' '}
-                <Text style={{ fontWeight: '800', color: Colors.primary }}>
-                  {Math.abs(insights.current_cycle_length - insights.average_cycle_length)} days{' '}
-                  {insights.current_cycle_length > insights.average_cycle_length ? 'longer' : 'shorter'}
-                </Text>{' '}
-                than your average ({insights.average_cycle_length} days). This is normal variation!
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Anomaly Warnings */}
-        {insights?.warnings?.map((warning: any, index: number) => (
-          <View 
-            key={index} 
-            style={[
-              styles.warningCard, 
-              warning.severity === 'medium' ? styles.warningMedium : styles.warningLow
-            ]}
-          >
-            <View style={styles.warningHeader}>
-              {warning.severity === 'medium' ? (
-                <AlertCircle size={20} color="#D32F2F" />
-              ) : (
-                <Info size={20} color="#F57C00" />
-              )}
-              <Text 
-                style={[
-                  styles.warningTitle, 
-                  { color: warning.severity === 'medium' ? "#D32F2F" : "#F57C00" }
-                ]}
-              >
-                {warning.title}
-              </Text>
-            </View>
-            <Text style={styles.warningMessage}>{warning.message}</Text>
-          </View>
-        ))}
-
-        {/* Daily Insight Card */}
-        <View style={styles.insightCard}>
-          <View style={styles.insightHeader}>
-            <Lightbulb size={20} color={Colors.fertility} />
-            <Text style={styles.insightTag}>GAIA INSIGHT</Text>
-          </View>
-          <Text style={styles.insightText}>
-            "{insights?.daily_insight || 'Keep logging your symptoms to see more patterns!'}"
-          </Text>
-        </View>
-
-        {/* Symptom Fingerprints */}
-        {insights?.symptom_fingerprints?.map((fingerprint: any, index: number) => (
-          <View key={index} style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Fingerprint size={20} color={Colors.fertility} />
-              <Text style={styles.sectionTitle}>{fingerprint.title}</Text>
-            </View>
-            <View style={styles.fingerprintCard}>
-              {fingerprint.symptoms.map((symptom: any, sIndex: number) => (
-                <View key={sIndex} style={styles.symptomRow}>
-                  <View style={styles.symptomInfo}>
-                    <Text style={styles.symptomLabel}>{symptom.label}</Text>
-                    <Text style={styles.symptomPercentage}>{symptom.percentage}%</Text>
-                  </View>
-                  <View style={styles.progressBarContainer}>
-                    <View style={[styles.progressBar, { width: `${symptom.percentage}%` }]} />
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        ))}
-
-        {/* Symptom Trends Section */}
-        {insights?.symptom_trends && insights.symptom_trends.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <TrendingUp size={20} color={Colors.fertility} />
-              <Text style={styles.sectionTitle}>Symptom Trends (Last 3 Months)</Text>
-            </View>
-            
-            {insights.symptom_trends.map((trend: any, index: number) => (
-              <SymptomTrendChart 
-                key={index}
-                title={trend.title} 
-                color={index === 0 ? Colors.period : Colors.fertility}
-                data={trend.data}
-              />
-            ))}
-          </View>
-        )}
-
-        {/* Phase Correlations */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Activity size={20} color={Colors.fertility} />
-            <Text style={styles.sectionTitle}>Phase Correlations</Text>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-            {insights?.phase_correlations?.map((correlation: any, index: number) => (
-              <View key={index} style={styles.phaseCard}>
-                <Text style={styles.phaseName}>{correlation.phase}</Text>
-                {correlation.top_symptoms.map((s: any, sIndex: number) => (
-                  <View key={sIndex} style={styles.miniSymptom}>
-                    <Text style={styles.miniSymptomLabel}>
-                      {t(`symptoms.${s.id}`, { defaultValue: toTitleCase(s.id) })}
-                    </Text>
-                    <Text style={styles.miniSymptomValue}>{s.percentage}%</Text>
-                  </View>
-                ))}
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Recent Journal Entries */}
-        {insights?.recent_notes && insights.recent_notes.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <BookOpen size={20} color={Colors.fertility} />
-              <Text style={styles.sectionTitle}>Recent Journal Entries</Text>
-            </View>
-            {insights.recent_notes.map((note: any, index: number) => (
-              <View key={index} style={[styles.journalCard, index > 0 && { marginTop: 12 }]}>
-                <Text style={styles.journalDate}>{note.date}</Text>
-                <Text style={styles.journalText}>"{note.text}"</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Coming Soon / More Insights */}
-        <View style={styles.infoBox}>
-          <TrendingUp size={20} color={Colors.textSecondary} />
-          <Text style={styles.infoBoxText}>
-            More insights like Symptom-Symptom Pairing and Proactive Warnings are coming soon as you log more data!
-          </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
 // Helper for title case removed from prototype
 const createStyles = (Colors: any, isDark: boolean) => StyleSheet.create({
   container: {
@@ -518,3 +276,245 @@ const createStyles = (Colors: any, isDark: boolean) => StyleSheet.create({
     lineHeight: 18,
   },
 });
+
+export default function InsightsScreen() {
+  const { t } = useTranslation();
+  const { colors: Colors, isDark } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors, isDark), [Colors, isDark]);
+  const [downloading, setDownloading] = React.useState(false);
+  const { insights, loading, fetchInsights } = useHealthStore(useShallow((state) => ({
+    insights: state.insights,
+    loading: state.loading,
+    fetchInsights: state.fetchInsights,
+  })));
+
+  useEffect(() => {
+    fetchInsights();
+  }, []);
+
+  const handleDownloadReport = async () => {
+    try {
+      setDownloading(true);
+      const token = await SecureStore.getItemAsync('token');
+      
+      if (!token) {
+        showToast.error('Authentication Error', 'Please log in again.');
+        return;
+      }
+
+      const filename = `doctor_report_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileUri = FileSystem.documentDirectory + filename;
+
+      const downloadRes = await FileSystem.downloadAsync(
+        `${API_URL}/health/report`,
+        fileUri,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (downloadRes.status !== 200) {
+        throw new Error('Failed to download report');
+      }
+
+      showToast.success('Report Generated', 'Your health report is ready.');
+      
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(downloadRes.uri);
+      } else {
+        showToast.info('Download Complete', `Saved to: ${downloadRes.uri}`);
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      showToast.error('Report Error', 'Could not generate PDF report. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  if (loading && !insights) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const toTitleCase = (str: string) => {
+    return str.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>My Wellness Trends</Text>
+        <TouchableOpacity 
+          style={styles.downloadButton} 
+          onPress={handleDownloadReport}
+          disabled={downloading}
+        >
+          {downloading ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <>
+              <FileText size={18} color={Colors.primary} />
+              <Text style={styles.downloadButtonText}>Doctor Report</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Smart Cycle Comparison */}
+        {insights?.average_cycle_length && insights?.current_cycle_length && (
+          <View style={styles.comparisonCard}>
+            <TrendingUp size={24} color={Colors.primary} />
+            <View style={styles.comparisonTextWrapper}>
+              <Text style={styles.comparisonTitle}>Cycle Analysis</Text>
+              <Text style={styles.comparisonText}>
+                Your current cycle is{' '}
+                <Text style={{ fontWeight: '800', color: Colors.primary }}>
+                  {Math.abs(insights.current_cycle_length - insights.average_cycle_length)} days{' '}
+                  {insights.current_cycle_length > insights.average_cycle_length ? 'longer' : 'shorter'}
+                </Text>{' '}
+                than your average ({insights.average_cycle_length} days). This is normal variation!
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Anomaly Warnings */}
+        {insights?.warnings?.map((warning: any, index: number) => (
+          <View 
+            key={index} 
+            style={[
+              styles.warningCard, 
+              warning.severity === 'medium' ? styles.warningMedium : styles.warningLow
+            ]}
+          >
+            <View style={styles.warningHeader}>
+              {warning.severity === 'medium' ? (
+                <AlertCircle size={20} color="#D32F2F" />
+              ) : (
+                <Info size={20} color="#F57C00" />
+              )}
+              <Text 
+                style={[
+                  styles.warningTitle, 
+                  { color: warning.severity === 'medium' ? "#D32F2F" : "#F57C00" }
+                ]}
+              >
+                {warning.title}
+              </Text>
+            </View>
+            <Text style={styles.warningMessage}>{warning.message}</Text>
+          </View>
+        ))}
+
+        {/* Daily Insight Card */}
+        <View style={styles.insightCard}>
+          <View style={styles.insightHeader}>
+            <Lightbulb size={20} color={Colors.fertility} />
+            <Text style={styles.insightTag}>GAIA INSIGHT</Text>
+          </View>
+          <Text style={styles.insightText}>
+            "{insights?.daily_insight || 'Keep logging your symptoms to see more patterns!'}"
+          </Text>
+        </View>
+
+        {/* Symptom Fingerprints */}
+        {insights?.symptom_fingerprints?.map((fingerprint: any, index: number) => (
+          <View key={index} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Fingerprint size={20} color={Colors.fertility} />
+              <Text style={styles.sectionTitle}>{fingerprint.title}</Text>
+            </View>
+            <View style={styles.fingerprintCard}>
+              {fingerprint.symptoms.map((symptom: any, sIndex: number) => (
+                <View key={sIndex} style={styles.symptomRow}>
+                  <View style={styles.symptomInfo}>
+                    <Text style={styles.symptomLabel}>{symptom.label}</Text>
+                    <Text style={styles.symptomPercentage}>{symptom.percentage}%</Text>
+                  </View>
+                  <View style={styles.progressBarContainer}>
+                    <View style={[styles.progressBar, { width: `${symptom.percentage}%` }]} />
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
+
+        {/* Symptom Trends Section */}
+        {insights?.symptom_trends && insights.symptom_trends.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <TrendingUp size={20} color={Colors.fertility} />
+              <Text style={styles.sectionTitle}>Symptom Trends (Last 3 Months)</Text>
+            </View>
+            
+            {insights.symptom_trends.map((trend: any, index: number) => (
+              <SymptomTrendChart 
+                key={index}
+                title={trend.title} 
+                color={index === 0 ? Colors.period : Colors.fertility}
+                data={trend.data}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Phase Correlations */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Activity size={20} color={Colors.fertility} />
+            <Text style={styles.sectionTitle}>Phase Correlations</Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+            {insights?.phase_correlations?.map((correlation: any, index: number) => (
+              <View key={index} style={styles.phaseCard}>
+                <Text style={styles.phaseName}>{correlation.phase}</Text>
+                {correlation.top_symptoms.map((s: any, sIndex: number) => (
+                  <View key={sIndex} style={styles.miniSymptom}>
+                    <Text style={styles.miniSymptomLabel}>
+                      {t(`symptoms.${s.id}`, { defaultValue: toTitleCase(s.id) })}
+                    </Text>
+                    <Text style={styles.miniSymptomValue}>{s.percentage}%</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Recent Journal Entries */}
+        {insights?.recent_notes && insights.recent_notes.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <BookOpen size={20} color={Colors.fertility} />
+              <Text style={styles.sectionTitle}>Recent Journal Entries</Text>
+            </View>
+            {insights.recent_notes.map((note: any, index: number) => (
+              <View key={index} style={[styles.journalCard, index > 0 && { marginTop: 12 }]}>
+                <Text style={styles.journalDate}>{note.date}</Text>
+                <Text style={styles.journalText}>"{note.text}"</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Coming Soon / More Insights */}
+        <View style={styles.infoBox}>
+          <TrendingUp size={20} color={Colors.textSecondary} />
+          <Text style={styles.infoBoxText}>
+            More insights like Symptom-Symptom Pairing and Proactive Warnings are coming soon as you log more data!
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}

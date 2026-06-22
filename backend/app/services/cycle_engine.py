@@ -10,12 +10,14 @@ class CycleEngine:
         recent_logs: List[Any] = None,
         variation: float = 0,
         historical_cycles: List[Any] = None,
-        evaluation_date: date = date.today()
+        evaluation_date: date = None
     ) -> Dict:
         """
         Calculates cycle phases with dynamic symptom overrides and prediction windows.
         Bases calculations on historical start and end dates if available.
         """
+        if evaluation_date is None:
+            evaluation_date = date.today()
         # If we have historical cycles, we can refine the ovulation prediction
         # Typically ovulation happens cycle_length - 14 days, but some users have different luteal phases
         luteal_phase_length = 14

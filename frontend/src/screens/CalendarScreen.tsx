@@ -25,6 +25,21 @@ import BottomSheet from '@gorhom/bottom-sheet';
 // Constants
 import { PHASE_INSIGHTS, PHASE_COLORS, PHASE_GREETINGS } from './calendar/constants';
 
+const createStyles = (Colors: any, themeColor: string, isDark: boolean) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: isDark ? Colors.background : themeColor + '08',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollContent: {
+    padding: Spacing.lg,
+  },
+});
+
 export default function CalendarScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Dashboard'>) {
   const { colors: Colors, isDark } = useTheme();
   const predictions = useHealthStore((state) => state.predictions);
@@ -434,18 +449,3 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     </SafeAreaView>
   );
 }
-
-const createStyles = (Colors: any, themeColor: string, isDark: boolean) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: isDark ? Colors.background : themeColor + '08',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollContent: {
-    padding: Spacing.lg,
-  },
-});

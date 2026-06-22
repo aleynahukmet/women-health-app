@@ -27,6 +27,247 @@ if (Constants.appOwnership !== 'expo') {
 
 import { Colors, Spacing, BorderRadius } from '../theme/theme';
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  scrollContent: {
+    padding: Spacing.lg,
+    flexGrow: 1,
+  },
+  header: {
+    marginTop: 40,
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
+  socialContainer: {
+    width: '100%',
+  },
+  socialButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
+  },
+  socialButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginLeft: 12,
+  },
+  googleIconContainer: {
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleG: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#4285F4',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 32,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    fontSize: 14,
+    color: Colors.textLight,
+  },
+  formContainer: {
+    width: '100%',
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  input: {
+    width: '100%',
+    padding: 16,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    fontSize: 16,
+    color: Colors.text,
+    backgroundColor: Colors.card,
+  },
+  passwordWrapper: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 16,
+    fontSize: 16,
+    color: Colors.text,
+  },
+  eyeIcon: {
+    padding: 16,
+  },
+  primaryButton: {
+    backgroundColor: Colors.primary,
+    padding: 18,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  disabledButton: {
+    backgroundColor: Colors.textLight,
+  },
+  primaryButtonText: {
+    color: Colors.card,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  termsText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 20,
+    lineHeight: 18,
+    paddingHorizontal: 10,
+  },
+  linkText: {
+    textDecorationLine: 'underline',
+    fontWeight: '600',
+  },
+  footer: {
+    marginTop: 40,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 14,
+    color: Colors.text,
+  },
+  footerLink: {
+    color: Colors.primary,
+    fontWeight: '700',
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: 24,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  accountItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  accountAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    color: Colors.card,
+    fontWeight: '700',
+    fontSize: 18,
+  },
+  accountName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  accountEmail: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  useAnotherButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  useAnotherText: {
+    color: '#4285F4',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  cancelButton: {
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+});
+
 type WelcomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Welcome'>;
 };
@@ -387,244 +628,3 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    padding: Spacing.lg,
-    flexGrow: 1,
-  },
-  header: {
-    marginTop: 40,
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
-  socialContainer: {
-    width: '100%',
-  },
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
-  },
-  socialButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginLeft: 12,
-  },
-  googleIconContainer: {
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  googleG: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#4285F4',
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 32,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 14,
-    color: Colors.textLight,
-  },
-  formContainer: {
-    width: '100%',
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  input: {
-    width: '100%',
-    padding: 16,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    fontSize: 16,
-    color: Colors.text,
-    backgroundColor: Colors.card,
-  },
-  passwordWrapper: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
-  },
-  passwordInput: {
-    flex: 1,
-    padding: 16,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  eyeIcon: {
-    padding: 16,
-  },
-  primaryButton: {
-    backgroundColor: Colors.primary,
-    padding: 18,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  disabledButton: {
-    backgroundColor: Colors.textLight,
-  },
-  primaryButtonText: {
-    color: Colors.card,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  termsText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 20,
-    lineHeight: 18,
-    paddingHorizontal: 10,
-  },
-  linkText: {
-    textDecorationLine: 'underline',
-    fontWeight: '600',
-  },
-  footer: {
-    marginTop: 40,
-    paddingVertical: 24,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 14,
-    color: Colors.text,
-  },
-  footerLink: {
-    color: Colors.primary,
-    fontWeight: '700',
-  },
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  modalContent: {
-    width: '85%',
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    padding: 24,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.text,
-    textAlign: 'center',
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  accountItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  accountAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: {
-    color: Colors.card,
-    fontWeight: '700',
-    fontSize: 18,
-  },
-  accountName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  accountEmail: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  useAnotherButton: {
-    marginTop: 16,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  useAnotherText: {
-    color: '#4285F4',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  cancelButton: {
-    marginTop: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: Colors.textSecondary,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-});

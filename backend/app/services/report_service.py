@@ -64,7 +64,7 @@ class ReportService:
             parent=styles['Heading1'],
             fontSize=24,
             spaceAfter=20,
-            textColor=colors.HexColor("#E91E63")  # Primary color
+            textColor=colors.HexColor("#B35B72")  # Updated to new primary color
         )
         elements.append(Paragraph("Health History Report", title_style))
         elements.append(Paragraph(f"Generated on: {date.today().strftime('%B %d, %Y')}", styles['Normal']))
@@ -73,15 +73,16 @@ class ReportService:
         # Patient Info
         elements.append(Paragraph("Patient Information", styles['Heading2']))
         patient_data = [
-            ["Name:", profile.name if profile and profile.name else "N/A"],
-            ["Age:", str(profile.age) if profile and profile.age else "N/A"],
-            ["Average Cycle:", f"{profile.average_cycle_length} days" if profile else "N/A"],
-            ["Average Period:", f"{profile.average_period_length} days" if profile else "N/A"],
+            [Paragraph("<b>Name:</b>", styles['Normal']), Paragraph(profile.name if profile and profile.name else "N/A", styles['Normal'])],
+            [Paragraph("<b>Age:</b>", styles['Normal']), Paragraph(str(profile.age) if profile and profile.age else "N/A", styles['Normal'])],
+            [Paragraph("<b>Average Cycle:</b>", styles['Normal']), Paragraph(f"{profile.average_cycle_length} days" if profile else "N/A", styles['Normal'])],
+            [Paragraph("<b>Average Period:</b>", styles['Normal']), Paragraph(f"{profile.average_period_length} days" if profile else "N/A", styles['Normal'])],
         ]
-        t = Table(patient_data, colWidths=[100, 300])
+        t = Table(patient_data, colWidths=[120, 360])
         t.setStyle(TableStyle([
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
             ('BACKGROUND', (0, 0), (0, -1), colors.whitesmoke),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
             ('PADDING', (0, 0), (-1, -1), 6),
         ]))
         elements.append(t)
@@ -90,7 +91,12 @@ class ReportService:
         # Cycle History
         elements.append(Paragraph("Recent Cycle History (Last 6 Months)", styles['Heading2']))
         if cycle_logs:
-            cycle_data = [["Start Date", "End Date", "Duration", "Intensity"]]
+            cycle_data = [[
+                Paragraph("<b>Start Date</b>", styles['Normal']), 
+                Paragraph("<b>End Date</b>", styles['Normal']), 
+                Paragraph("<b>Duration</b>", styles['Normal']), 
+                Paragraph("<b>Intensity</b>", styles['Normal'])
+            ]]
             for log in cycle_logs:
                 duration = (log.end_date - log.start_date).days + 1 if log.end_date else "Ongoing"
                 cycle_data.append([
@@ -100,12 +106,12 @@ class ReportService:
                     log.intensity or "N/A"
                 ])
             
-            ct = Table(cycle_data, colWidths=[100, 100, 100, 100])
+            ct = Table(cycle_data, colWidths=[110, 110, 110, 110])
             ct.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FCE4EC")),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#F3E1E4")), # Updated to primaryLight
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
             ]))
@@ -138,15 +144,22 @@ class ReportService:
             
             sorted_symptoms = sorted(symptom_counts.items(), key=lambda x: x[1], reverse=True)[:5]
             if sorted_symptoms:
-                s_data = [["Symptom/Mood", "Frequency (Days)"]]
+                s_data = [[
+                    Paragraph("<b>Symptom/Mood</b>", styles['Normal']), 
+                    Paragraph("<b>Frequency (Days)</b>", styles['Normal'])
+                ]]
                 for s, count in sorted_symptoms:
-                    s_data.append([s.replace("_", " ").title(), str(count)])
+                    s_data.append([
+                        Paragraph(s.replace("_", " ").title(), styles['Normal']), 
+                        str(count)
+                    ])
                 
-                st = Table(s_data, colWidths=[200, 100])
+                st = Table(s_data, colWidths=[300, 140])
                 st.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#F3E5F5")),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FAF6F6")), # Updated to background color
                     ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                 ]))
                 elements.append(st)
             else:
@@ -159,13 +172,26 @@ class ReportService:
         # Notes Section
         elements.append(Paragraph("Recent Notes", styles['Heading2']))
         notes_found = False
-        for log in symptom_logs[:10]: # Last 10 logs with notes
+        
+        # Use a table for notes to ensure long text wraps correctly
+        notes_data = []
+        for log in symptom_logs[:15]: # Show more notes if available
             if log.notes:
-                elements.append(Paragraph(f"<b>{log.log_date.strftime('%Y-%m-%d')}:</b> {log.notes}", styles['Normal']))
-                elements.append(Spacer(1, 5))
+                date_str = log.log_date.strftime('%Y-%m-%d')
+                # Wrap the note in a Paragraph to handle long text
+                note_p = Paragraph(log.notes, styles['Normal'])
+                notes_data.append([Paragraph(f"<b>{date_str}</b>", styles['Normal']), note_p])
                 notes_found = True
         
-        if not notes_found:
+        if notes_found:
+            nt = Table(notes_data, colWidths=[100, 380])
+            nt.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.lightgrey),
+            ]))
+            elements.append(nt)
+        else:
             elements.append(Paragraph("No recent notes found.", styles['Normal']))
 
         # Build PDF

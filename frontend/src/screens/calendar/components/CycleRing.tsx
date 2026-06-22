@@ -2,8 +2,43 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { LiquidWave } from './LiquidWave';
-import { Colors as StaticColors, useTheme } from '../../../theme/theme';
+import { Colors as StaticColors, useTheme, Colors } from '../../../theme/theme';
 import { PHASE_COLORS } from '../constants';
+
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  waveContainer: {
+    position: 'absolute',
+    zIndex: 1,
+  },
+  svg: {
+    zIndex: 2,
+  },
+  content: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3,
+  },
+  dayNumber: {
+    fontSize: 64,
+    fontWeight: '900',
+    textShadowColor: 'rgba(255, 255, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  dayLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginTop: -4,
+  },
+});
 
 interface CycleRingProps {
   size: number;
@@ -86,38 +121,3 @@ export const CycleRing: React.FC<CycleRingProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  waveContainer: {
-    position: 'absolute',
-    zIndex: 1,
-  },
-  svg: {
-    zIndex: 2,
-  },
-  content: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 3,
-  },
-  dayNumber: {
-    fontSize: 64,
-    fontWeight: '900',
-    textShadowColor: 'rgba(255, 255, 255, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  dayLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginTop: -4,
-  },
-});

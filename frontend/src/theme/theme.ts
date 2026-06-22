@@ -1,94 +1,95 @@
 export const LightColors = {
   // Backgrounds
-  background: '#FDFCFB', // Warm White / Cream
-  card: '#FFFFFF',
+  background: '#FAF6F6',    // Soft, easy-on-the-eyes off-white/cream
+  card: '#FFFFFF',          // Pure white cards
   
-  // Phase Colors (Terracotta & Earth Palette)
-  menstrual: '#D66D75',   // Modern Rose / Berry
-  follicular: '#F2CC8F',  // Peach / Sand
-  ovulation: '#94A684',   // Sage Green
-  luteal: '#3D405B',      // Earthy Navy / Dark Slate
-
+  // Phase Colors (Muted Pastel & Deep Berry Palette)
+  menstrual: '#C95A62',     // Soft, warm coral/red (instead of aggressive red)
+  follicular: '#739574',    // Calming sage green
+  ovulation: '#D99A4E',     // Noble mustard/amber tone
+  luteal: '#7D76A6',        // Misty lavender blue
+  
   // Aliases for clarity
-  period: '#D66D75',
-  fertility: '#94A684',
-  ovulatory: '#94A684',
+  period: '#C95A62',
+  fertility: '#D99A4E',
+  ovulatory: '#D99A4E',
   
   // Text
-  text: '#3D405B',
-  textSecondary: '#4A4E69',
+  text: '#2C1A21',          // Deep berry/plum instead of pure black (softens text)
+  textSecondary: '#8E7A82', // Secondary muted text
   textLight: '#A8ABB3',
   
   // UI Elements
-  primary: '#D66D75',     // Rose as primary
-  accent: '#F2CC8F',      // Peach as accent
+  primary: '#B35B72',       // Mature, premium rose gold/berry
+  primaryLight: '#F3E1E4',  // Transparent background tone for primary
+  accent: '#D99B82',        // Warm terracotta/peach for action buttons
   border: '#F4F1DE',
-  error: '#D66D75',
-  success: '#94A684',
+  error: '#C95A62',
+  success: '#739574',
   
-  // Discreet Palette (for neutral mode)
+  // Severity Levels (for symptoms)
+  severity: {
+    low: '#F7E7E9',
+    medium: '#EBBEC3',
+    high: '#C95A62',
+  },
+
+  // Discreet Palette
   neutral: '#F4F1DE',
-  neutralDark: '#3D405B',
+  neutralDark: '#2C1A21',
 
   // Glassmorphism / Overlays
   overlay: 'rgba(255, 255, 255, 0.8)',
-  shadow: '#3D405B',
+  shadow: '#2C1A21',
 };
 
 export const DarkColors = {
   // Backgrounds
-  background: '#121212', // Deep Charcoal
-  card: '#1E1E1E',      // Lighter Charcoal
+  background: '#1A1416',    // Deep berry-tinted charcoal
+  card: '#251C1F',          // Slightly lighter berry charcoal
   
-  // Phase Colors (Slightly more vibrant for dark background)
+  // Phase Colors (Adjusted for dark mode visibility)
   menstrual: '#E57373',
-  follicular: '#FFD54F',
-  ovulation: '#81C784',
+  follicular: '#81C784',
+  ovulation: '#FFD54F',
   luteal: '#9FA8DA',
 
   // Aliases
   period: '#E57373',
-  fertility: '#81C784',
-  ovulatory: '#81C784',
+  fertility: '#FFD54F',
+  ovulatory: '#FFD54F',
   
   // Text
-  text: '#F5F5F5',
+  text: '#FAF6F6',
   textSecondary: '#BDBDBD',
   textLight: '#757575',
   
   // UI Elements
-  primary: '#E57373',
-  accent: '#FFD54F',
-  border: '#333333',
+  primary: '#B35B72',
+  primaryLight: 'rgba(179, 91, 114, 0.2)',
+  accent: '#D99B82',
+  border: '#33282B',
   error: '#E57373',
   success: '#81C784',
   
+  // Severity Levels
+  severity: {
+    low: '#2D1F22',
+    medium: '#4A2B31',
+    high: '#B35B72',
+  },
+
   // Discreet Palette
-  neutral: '#333333',
-  neutralDark: '#F5F5F5',
+  neutral: '#33282B',
+  neutralDark: '#FAF6F6',
 
   // Glassmorphism / Overlays
-  overlay: 'rgba(30, 30, 30, 0.8)',
+  overlay: 'rgba(37, 28, 31, 0.8)',
   shadow: '#000000',
 };
 
 // Default export for backward compatibility
 export const Colors = LightColors;
-
-import { useColorScheme } from 'react-native';
-
-export const useTheme = () => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const theme = isDark ? DarkColors : LightColors;
-  
-  return {
-    colors: theme,
-    isDark,
-    spacing: Spacing,
-    borderRadius: BorderRadius,
-  };
-};
 
 export const Spacing = {
   xs: 4,
@@ -105,4 +106,19 @@ export const BorderRadius = {
   lg: 24,
   xl: 32,
   round: 999,
+};
+
+import { useColorScheme } from 'react-native';
+
+export const useTheme = () => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? DarkColors : LightColors;
+  
+  return {
+    colors: theme,
+    isDark,
+    spacing: Spacing,
+    borderRadius: BorderRadius,
+  };
 };

@@ -1,10 +1,68 @@
 import React, { useRef, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { format, addDays, subDays, isSameDay, startOfDay } from 'date-fns';
-import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
+import { Colors, Spacing, BorderRadius, useTheme } from '../../../theme/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_WIDTH = SCREEN_WIDTH / 7;
+
+const createStyles = (Colors: any) => StyleSheet.create({
+  container: {
+    height: 100,
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  scrollContent: {
+    paddingHorizontal: 0,
+    alignItems: 'center',
+  },
+  dayItem: {
+    width: ITEM_WIDTH,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  selectedDayItem: {
+    // Optional: background for selected item
+  },
+  dayName: {
+    fontSize: 12,
+    color: Colors.textSecondary, 
+    fontWeight: '700', 
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  dateCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedDateCircle: {
+    backgroundColor: Colors.primary,
+  },
+  dateText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  selectedText: {
+    color: Colors.card,
+  },
+  dotContainer: {
+    height: 6,
+    marginTop: 4,
+    justifyContent: 'center',
+  },
+  symptomDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.accent,
+  },
+});
 
 interface WeeklyCalendarProps {
   selectedDate: Date;
@@ -17,6 +75,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   onDateSelect,
   symptomHistory,
 }) => {
+  const { colors: Colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors), [Colors]);
   const scrollViewRef = useRef<ScrollView>(null);
   
   // Generate a range of days around the selected date
@@ -76,61 +136,3 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    height: 100,
-    backgroundColor: Colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  scrollContent: {
-    paddingHorizontal: 0,
-    alignItems: 'center',
-  },
-  dayItem: {
-    width: ITEM_WIDTH,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.sm,
-  },
-  selectedDayItem: {
-    // Optional: background for selected item
-  },
-  dayName: {
-    fontSize: 12,
-    color: Colors.text, // Darkened for better visibility
-    fontWeight: '700', // Increased weight
-    marginBottom: 4,
-    textTransform: 'uppercase',
-  },
-  dateCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectedDateCircle: {
-    backgroundColor: Colors.primary,
-  },
-  dateText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  selectedText: {
-    color: Colors.card,
-  },
-  dotContainer: {
-    height: 6,
-    marginTop: 4,
-    justifyContent: 'center',
-  },
-  symptomDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.accent,
-  },
-});
