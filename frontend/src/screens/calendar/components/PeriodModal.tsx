@@ -44,10 +44,25 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
         const isOvulation = isSameDay(day, ovulationDate);
         
         marks[dateStr] = {
-          color: isOvulation ? Colors.fertility + '30' : Colors.fertility + '10',
-          textColor: isOvulation ? Colors.fertility : Colors.textSecondary,
+          color: isOvulation ? Colors.fertility + '30' : Colors.fertility + '15',
+          textColor: isOvulation ? Colors.fertility : Colors.text,
         };
       });
+
+      // Future Period Prediction - Gradient-like (using opacity)
+      if (predictions.next_period_date) {
+        const nextStart = parseISO(predictions.next_period_date);
+        const nextEnd = addDays(nextStart, averagePeriodLength - 1);
+        const nextRange = eachDayOfInterval({ start: nextStart, end: nextEnd });
+        
+        nextRange.forEach((day) => {
+          const dateStr = format(day, 'yyyy-MM-dd');
+          marks[dateStr] = {
+            color: Colors.period + '20', // Semi-transparent for prediction
+            textColor: Colors.period,
+          };
+        });
+      }
     }
     
     // 2. Add Period Selection (Overrides predictions)
@@ -56,60 +71,38 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
       
       if (modalEnd) {
         const endStr = format(modalEnd, 'yyyy-MM-dd');
-        
-        if (startStr === endStr) {
-          marks[startStr] = {
-            startingDay: true,
-            endingDay: true,
-            color: Colors.period,
-            textColor: Colors.card
-          };
-        } else {
-          const range = eachDayOfInterval({
-            start: modalStart,
-            end: modalEnd
-          });
-
-          range.forEach((day, index) => {
-            const dateStr = format(day, 'yyyy-MM-dd');
-            const isFirst = index === 0;
-            const isLast = index === range.length - 1;
-            
-            marks[dateStr] = {
-              startingDay: isFirst,
-              endingDay: isLast,
-              color: (isFirst || isLast) ? Colors.period : Colors.period + '40',
-              textColor: (isFirst || isLast) ? Colors.card : Colors.period,
-            };
-          });
-        }
-      } else {
-        // Only start date selected - show estimated range as a guide
-        const estimatedEnd = addDays(modalStart, averagePeriodLength - 1);
         const range = eachDayOfInterval({
-          start: modalStart,
-          end: estimatedEnd
+          start: modalStart < modalEnd ? modalStart : modalEnd,
+          end: modalStart < modalEnd ? modalEnd : modalStart
         });
 
         range.forEach((day, index) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const isFirst = index === 0;
+          const isLast = index === range.length - 1;
           
           marks[dateStr] = {
             startingDay: isFirst,
-            endingDay: index === range.length - 1,
-            color: isFirst ? Colors.period : Colors.period + '20',
-            textColor: isFirst ? Colors.card : Colors.period,
+            endingDay: isLast,
+            color: Colors.period,
+            textColor: Colors.card,
           };
         });
+      } else {
+        marks[startStr] = {
+          startingDay: true,
+          endingDay: true,
+          color: Colors.period,
+          textColor: Colors.card,
+        };
       }
     }
     
     return marks;
-  }, [modalStart, modalEnd, averagePeriodLength, predictions]);
+  }, [modalStart, modalEnd, predictions, averagePeriodLength]);
 
   const selectionText = useMemo(() => {
-    if (!modalStart) return 'Select start date';
+    if (!modalStart) return 'Please select start date';
     if (!modalEnd) return `${format(modalStart, 'MMM d')} - Select end date`;
     return `${format(modalStart, 'MMM d')} - ${format(modalEnd, 'MMM d')}`;
   }, [modalStart, modalEnd]);
@@ -136,9 +129,11 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
           <Calendar
             markingType={'period'}
             markedDates={markedDates}
-            onDayPress={(day: any) => {
-              onDatePress(new Date(day.timestamp));
-            }}
+          onDayPress={(day: any) => {
+            onDatePress(new Date(day.timestamp));
+          }}
+            disableAllTouchEventsForDisabledDays={true}
+            maxDate={new Date().toISOString().split('T')[0]}
             enableSwipeMonths={true}
             theme={{
               calendarBackground: Colors.card,
@@ -159,13 +154,6 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
               textDayFontSize: 15,
               textMonthFontSize: 18,
               textDayHeaderFontSize: 12,
-              'stylesheet.calendar.header': {
-                week: {
-                  marginTop: 15,
-                  flexDirection: 'row',
-                  justifyContent: 'space-around'
-                }
-              }
             }}
           />
 

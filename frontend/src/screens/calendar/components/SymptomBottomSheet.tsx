@@ -8,10 +8,7 @@ import Animated, {
   Layout,
   FadeIn,
 } from 'react-native-reanimated';
-// import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
-const BottomSheet = forwardRef(({ children }: any, ref: any) => <View>{children}</View>);
-const BottomSheetView = View;
-const BottomSheetBackdrop = () => null;
+import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { Check, Edit3 } from 'lucide-react-native';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';

@@ -69,30 +69,9 @@ export const CycleRing: React.FC<CycleRingProps> = ({
             stroke={Colors.border}
             strokeWidth={strokeWidth}
             fill="none"
-            opacity={0.2}
+            opacity={0.1}
           />
           
-          {/* Phase Segments */}
-          {segments.map((segment, index) => {
-            const rotation = currentOffset * 360;
-            currentOffset += segment.length;
-            
-            return (
-              <Circle
-                key={index}
-                cx={center}
-                cy={center}
-                r={radius}
-                stroke={segment.color}
-                strokeWidth={strokeWidth}
-                strokeDasharray={`${circumference * segment.length} ${circumference}`}
-                fill="none"
-                transform={`rotate(${rotation}, ${center}, ${center})`}
-                opacity={0.4}
-              />
-            );
-          })}
-
           {/* Active Progress Indicator */}
           <Circle
             cx={center}

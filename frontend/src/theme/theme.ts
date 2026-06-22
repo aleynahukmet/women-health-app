@@ -1,33 +1,38 @@
 export const Colors = {
   // Backgrounds
-  background: '#FBF9F6', // Soft Linen White
+  background: '#FDFCFB', // Warm White / Cream
   card: '#FFFFFF',
   
-  // Phase Colors (Mulberry & Sage Palette)
-  menstrual: '#9B3062',   // Mulberry
-  follicular: '#A8B595',  // Pale Sage
-  ovulation: '#8FA883',   // Light Sage
-  luteal: '#4A5D4E',      // Dark Sage / Forest
+  // Phase Colors (Terracotta & Earth Palette)
+  menstrual: '#E07A5F',   // Soft Terracotta
+  follicular: '#F2CC8F',  // Peach / Sand
+  ovulation: '#81B29A',   // Sage / Soft Teal
+  luteal: '#3D405B',      // Earthy Navy / Dark Slate
 
   // Aliases for clarity
-  period: '#9B3062',
-  fertility: '#5F7D65',   // Adaçayı Yeşili
+  period: '#E07A5F',
+  fertility: '#81B29A',
+  ovulatory: '#81B29A',
   
   // Text
-  text: '#2D3436',
-  textSecondary: '#636E72',
-  textLight: '#B2BEC3',
+  text: '#3D405B',
+  textSecondary: '#5F6382',
+  textLight: '#A8ABB3',
   
   // UI Elements
-  primary: '#5F7D65',     // Sage Green as primary
-  accent: '#9B3062',      // Mulberry as accent
-  border: '#E2E8F0',
-  error: '#FF7675',
-  success: '#55E6C1',
+  primary: '#E07A5F',     // Terracotta as primary
+  accent: '#F2CC8F',      // Peach as accent
+  border: '#F4F1DE',
+  error: '#E07A5F',
+  success: '#81B29A',
   
+  // Discreet Palette (for neutral mode)
+  neutral: '#F4F1DE',
+  neutralDark: '#3D405B',
+
   // Glassmorphism / Overlays
   overlay: 'rgba(255, 255, 255, 0.8)',
-  shadow: '#000000',
+  shadow: '#3D405B',
 };
 
 export const Spacing = {

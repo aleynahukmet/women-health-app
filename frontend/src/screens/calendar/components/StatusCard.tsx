@@ -1,23 +1,26 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Info, AlertCircle, Zap } from 'lucide-react-native';
+import { StyleSheet, Text, View, Dimensions } from 'react-native';
+import { Info, AlertCircle, Zap, ChevronDown } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { differenceInDays, parseISO, format } from 'date-fns';
-import { CycleRing } from './CycleRing';
 import { Colors, Spacing, BorderRadius } from '../../../theme/theme';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface StatusCardProps {
   predictions: any;
   themeColor: string;
   currentPhase: string;
   daysUntilPeriod: number;
+  onExpand: () => void;
 }
 
 export const StatusCard: React.FC<StatusCardProps> = ({ 
   predictions, 
   themeColor, 
   currentPhase, 
-  daysUntilPeriod 
+  daysUntilPeriod,
+  onExpand
 }) => {
   const { t } = useTranslation();
 
@@ -32,63 +35,63 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   const isPeriod = currentPhase === 'Menstrual';
 
   return (
-    <View style={styles.statusCard}>
-      <View style={styles.headerInfo}>
-        <Text style={[styles.phaseText, { color: themeColor }]}>
-          {t(`phases.${currentPhase.toLowerCase()}`)} Phase
-        </Text>
-        <Text style={styles.dayText}>Day {cycleDay}</Text>
-      </View>
-      
-      <View style={styles.waveWrapper}>
-        <CycleRing 
-          size={260} 
-          progress={progress} 
-          themeColor={themeColor} 
-          currentPhase={currentPhase}
-          cycleDay={cycleDay}
-        />
-      </View>
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <View>
+            <Text style={[styles.phaseText, { color: themeColor }]}>
+              {t(`phases.${currentPhase.toLowerCase()}`)} Phase
+            </Text>
+            <Text style={styles.dayText}>Day {cycleDay}</Text>
+          </View>
+          <View style={styles.predictionInfo}>
+            <Text style={styles.predictionTitle}>
+              {isPeriod ? 'Period ends in' : 'Next period in'}
+            </Text>
+            <Text style={[styles.predictionDays, { color: themeColor }]}>
+              {Math.abs(daysUntilPeriod)} days
+            </Text>
+          </View>
+        </View>
 
-      <View style={styles.predictionContainer}>
-        <Text style={styles.predictionText}>
-          {isPeriod ? 'Period ends in' : 'Next period in'} {Math.abs(daysUntilPeriod)} days
-        </Text>
-        
-        {isPeriod ? (
-          <Text style={styles.windowText}>
-            Estimated End: {format(parseISO(predictions.current_cycle.menstrual_phase.end), 'MMMM d')}
-          </Text>
-        ) : (
-          prediction_window && (
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBarBg}>
+            <View 
+              style={[
+                styles.progressBarFill, 
+                { width: `${progress * 100}%`, backgroundColor: themeColor }
+              ]} 
+            />
+          </View>
+          <View style={styles.progressLabels}>
+            <Text style={styles.progressLabel}>Day 1</Text>
+            <Text style={styles.progressLabel}>Day {cycleLength}</Text>
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          {prediction_window && !isPeriod && (
             <Text style={styles.windowText}>
               Expected: {format(parseISO(prediction_window.start), 'MMM d')} - {format(parseISO(prediction_window.end), 'MMM d')}
             </Text>
-          )
-        )}
+          )}
+          <View style={styles.expandButtonContainer}>
+            <ChevronDown size={20} color={Colors.textLight} />
+          </View>
+        </View>
       </View>
-      
+
       <View style={styles.badgeContainer}>
         {is_override && (
-          <View style={styles.overrideBadge}>
-            <Zap size={14} color={Colors.fertility} />
-            <Text style={styles.overrideText}>
-              {override_reason === 'ovulation_signal' ? 'Adjusted by fertile signs' : 'Adjusted by symptoms'}
-            </Text>
+          <View style={styles.badge}>
+            <Zap size={12} color={Colors.fertility} />
+            <Text style={styles.badgeText}>Adjusted by fertile signs</Text>
           </View>
         )}
-
-        {is_irregular && !is_override && (
-          <View style={styles.irregularBadge}>
-            <AlertCircle size={14} color={Colors.textSecondary} />
-            <Text style={styles.irregularText}>Cycle variation detected</Text>
-          </View>
-        )}
-
-        {currentPhase === 'Ovulatory' && (
-          <View style={styles.fertileBadge}>
-            <Info size={14} color={Colors.fertility} />
-            <Text style={styles.fertileText}>High chance of conception</Text>
+        {is_irregular && (
+          <View style={styles.badge}>
+            <AlertCircle size={12} color={Colors.textSecondary} />
+            <Text style={styles.badgeText}>Cycle variation</Text>
           </View>
         )}
       </View>
@@ -97,100 +100,108 @@ export const StatusCard: React.FC<StatusCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-  statusCard: {
-    backgroundColor: 'transparent',
-    padding: Spacing.md,
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
+  container: {
+    marginBottom: Spacing.lg,
   },
-  headerInfo: {
-    alignItems: 'center',
-    marginBottom: 32,
+  card: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
   },
   phaseText: {
+    fontSize: 14,
     fontWeight: '800',
-    fontSize: 16,
     textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: 8,
+    letterSpacing: 1,
+    marginBottom: 4,
   },
   dayText: {
     fontSize: 24,
     fontWeight: '900',
     color: Colors.text,
   },
-  waveWrapper: {
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    marginBottom: 32,
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
+  predictionInfo: {
+    alignItems: 'flex-end',
   },
-  predictionContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
+  predictionTitle: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    marginBottom: 2,
   },
-  predictionText: {
-    fontSize: 20,
+  predictionDays: {
+    fontSize: 18,
     fontWeight: '800',
-    color: Colors.text,
+  },
+  progressContainer: {
+    marginBottom: Spacing.md,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: Colors.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  progressLabel: {
+    fontSize: 10,
+    color: Colors.textLight,
+    fontWeight: '600',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.sm,
   },
   windowText: {
-    fontSize: 15,
+    fontSize: 12,
     color: Colors.textSecondary,
-    marginTop: 8,
     fontWeight: '600',
+  },
+  expandButtonContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badgeContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 10,
+    marginTop: Spacing.sm,
+    gap: Spacing.sm,
   },
-  fertileBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.fertility + '15',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: BorderRadius.md,
-  },
-  fertileText: {
-    color: Colors.fertility,
-    fontSize: 12,
-    fontWeight: '700',
-    marginLeft: 8,
-  },
-  overrideBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.fertility + '15',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: BorderRadius.md,
-  },
-  overrideText: {
-    color: Colors.fertility,
-    fontSize: 12,
-    fontWeight: '700',
-    marginLeft: 8,
-  },
-  irregularBadge: {
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.card,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: BorderRadius.md,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  irregularText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
+  badgeText: {
+    fontSize: 10,
     fontWeight: '700',
-    marginLeft: 8,
+    color: Colors.textSecondary,
+    marginLeft: 4,
   },
 });

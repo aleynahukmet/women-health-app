@@ -74,8 +74,19 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
       // Call our new social login endpoint to get a real JWT token
       const response = await authApi.socialLogin(email);
       console.log('Social login success:', response);
-      navigation.navigate('Onboarding', { email, mode: 'social', provider: socialType });
-      showToast.success('Welcome back!');
+      
+      try {
+        const profile = await healthApi.getProfile();
+        if (profile) {
+          navigation.navigate('Dashboard');
+        } else {
+          navigation.navigate('Onboarding', { email, mode: 'social', provider: socialType });
+        }
+      } catch (e) {
+        navigation.navigate('Onboarding', { email, mode: 'social', provider: socialType });
+      }
+      
+      showToast.success('Welcome!');
     } catch (error: any) {
       console.error('Social login error:', error.response?.data || error.message);
       showToast.error('Social login failed. Please try again.');

@@ -1,12 +1,9 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import { StyleSheet, View, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ScrollView, ActivityIndicator, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthStore } from '../store/useHealthStore';
 import { useShallow } from 'zustand/react/shallow';
-import { format, differenceInDays, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from 'date-fns';
-// import BottomSheet from '@gorhom/bottom-sheet';
-const BottomSheet: any = View;
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { format, differenceInDays, parseISO, startOfMonth, endOfMonth, startOfDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { showToast } from '../utils/toast';
 import { registerForPushNotificationsAsync, schedulePeriodReminder } from '../utils/notifications';
@@ -21,9 +18,11 @@ import { QuickActions } from './calendar/components/QuickActions';
 import { InsightCard } from './calendar/components/InsightCard';
 import { PeriodModal } from './calendar/components/PeriodModal';
 import { SymptomBottomSheet } from './calendar/components/SymptomBottomSheet';
+import { WeeklyCalendar } from './calendar/components/WeeklyCalendar';
+import BottomSheet from '@gorhom/bottom-sheet';
 
 // Constants
-import { PHASE_COLORS, PHASE_INSIGHTS } from './calendar/constants';
+import { PHASE_INSIGHTS } from './calendar/constants';
 
 export default function CalendarScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Dashboard'>) {
   const { 
@@ -55,6 +54,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
   const [viewDate, setViewDate] = useState(startOfDay(new Date()));
   const [activeCategory, setActiveCategory] = useState('flow');
+  const [isPeriodModalVisible, setIsPeriodModalVisible] = useState(false);
   
   const [currentLog, setCurrentLog] = useState<any>({
     flow_level: 0,
@@ -66,14 +66,12 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
 
   const [isLogging, setIsLogging] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Period Logging Modal State
-  const [periodModalVisible, setPeriodModalVisible] = useState(false);
   const [modalStart, setModalStart] = useState<Date | null>(null);
   const [modalEnd, setModalEnd] = useState<Date | null>(null);
 
-  // Bottom Sheet Ref
+  // Bottom Sheet Refs
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['70%', '90%'], []);
 
@@ -82,7 +80,6 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     fetchPredictions();
     fetchCycleLogs();
     
-    // Setup notifications
     registerForPushNotificationsAsync();
 
     const start = format(startOfMonth(viewDate), 'yyyy-MM-dd');
@@ -111,12 +108,6 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     }
   }, [selectedDate, symptomHistory]);
 
-  const calendarDays = useMemo(() => {
-    const start = startOfMonth(viewDate);
-    const end = endOfMonth(viewDate);
-    return eachDayOfInterval({ start, end });
-  }, [viewDate]);
-
   const handleOpenBottomSheet = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     bottomSheetRef.current?.expand();
@@ -124,7 +115,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
 
   const handleOpenNotes = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setActiveCategory('body'); // Or a dedicated notes category if available
+    setActiveCategory('body');
     bottomSheetRef.current?.expand();
   }, []);
 
@@ -138,7 +129,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setModalStart(selectedDate);
     setModalEnd(null);
-    setPeriodModalVisible(true);
+    setIsPeriodModalVisible(true);
   };
 
   const handleModalDatePress = (day: Date) => {
@@ -147,12 +138,6 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     
     if (!modalStart || (modalStart && modalEnd)) {
       setModalStart(normalizedDay);
-      setModalEnd(null);
-    } else if (normalizedDay < modalStart) {
-      setModalStart(normalizedDay);
-      setModalEnd(null);
-    } else if (normalizedDay.getTime() === modalStart.getTime()) {
-      setModalStart(null);
       setModalEnd(null);
     } else {
       setModalEnd(normalizedDay);
@@ -170,7 +155,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         end_date: format(modalEnd, 'yyyy-MM-dd'),
         intensity: 'medium'
       });
-      setPeriodModalVisible(false);
+      setIsPeriodModalVisible(false);
       await fetchPredictions();
       await fetchCycleLogs();
       showToast.success('Period saved successfully');
@@ -185,64 +170,39 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     setCurrentLog((prevLog: any) => {
+      let nextLog = { ...prevLog };
       switch (categoryId) {
         case 'flow':
-          return { ...prevLog, flow_level: symptomId };
-          
+          nextLog = { ...prevLog, flow_level: symptomId };
+          break;
         case 'pain': {
           const currentLevel = prevLog.pain_metrics[symptomId] || 0;
           const nextLevel = (currentLevel + 1) % 4;
           const newPainMetrics = { ...prevLog.pain_metrics };
-          
-          if (nextLevel === 0) {
-            delete newPainMetrics[symptomId];
-          } else {
-            newPainMetrics[symptomId] = nextLevel;
-          }
-          
-          return { ...prevLog, pain_metrics: newPainMetrics };
+          if (nextLevel === 0) delete newPainMetrics[symptomId];
+          else newPainMetrics[symptomId] = nextLevel;
+          nextLog = { ...prevLog, pain_metrics: newPainMetrics };
+          break;
         }
-          
         case 'mood':
-          return {
+          nextLog = {
             ...prevLog,
             mood_metrics: prevLog.mood_metrics.includes(symptomId)
               ? prevLog.mood_metrics.filter((id: any) => id !== symptomId)
               : [...prevLog.mood_metrics, symptomId]
           };
-          
-        case 'energy':
-        case 'body': {
-          const isLevelMetric = ['deep_sleep', 'insomnia', 'exhausted', 'restless'].includes(symptomId);
-          const newLifestyleMetrics = { ...prevLog.lifestyle_metrics };
-          
-          if (isLevelMetric) {
-            const currentLevel = prevLog.lifestyle_metrics[symptomId] || 0;
-            const nextLevel = (currentLevel + 1) % 4;
-            if (nextLevel === 0) {
-              delete newLifestyleMetrics[symptomId];
-            } else {
-              newLifestyleMetrics[symptomId] = nextLevel;
-            }
-          } else {
-            newLifestyleMetrics[symptomId] = !prevLog.lifestyle_metrics[symptomId];
-          }
-          
-          return { ...prevLog, lifestyle_metrics: newLifestyleMetrics };
-        }
-          
-        case 'sex':
-          return {
-            ...prevLog,
-            sex_logged: {
-              ...prevLog.sex_logged,
-              [symptomId]: !prevLog.sex_logged[symptomId]
-            }
-          };
-          
+          break;
         default:
-          return prevLog;
+          break;
       }
+      
+      // Auto-save logic
+      upsertSymptomLog({
+        log_date: format(selectedDate, 'yyyy-MM-dd'),
+        ...nextLog
+      }).catch(console.error);
+      
+      return nextLog;
     });
   };
 
@@ -261,7 +221,6 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
       bottomSheetRef.current?.close();
       showToast.success('Symptoms logged');
     } catch (error) {
-      console.error('Failed to log:', error);
       showToast.error('Failed to log. Please try again.');
     } finally {
       setIsLogging(false);
@@ -290,7 +249,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const activeLog = cycleLogs.find(log => !log.end_date);
     if (!activeLog) {
-      setPeriodModalVisible(true);
+      setIsPeriodModalVisible(true);
       return;
     }
 
@@ -336,21 +295,15 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
         onSettingsPress={() => {}}
       />
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={viewDate}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            setShowDatePicker(false);
-            if (date) setViewDate(date);
-          }}
-        />
-      )}
+      <WeeklyCalendar 
+        selectedDate={selectedDate}
+        onDateSelect={handleDateSelect}
+        symptomHistory={symptomHistory}
+      />
 
       <PeriodModal 
-        visible={periodModalVisible}
-        onClose={() => setPeriodModalVisible(false)}
+        visible={isPeriodModalVisible}
+        onClose={() => setIsPeriodModalVisible(false)}
         modalStart={modalStart}
         modalEnd={modalEnd}
         onDatePress={handleModalDatePress}
@@ -367,6 +320,7 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
           themeColor={themeColor}
           currentPhase={currentPhase}
           daysUntilPeriod={daysUntilPeriod}
+          onExpand={() => setIsPeriodModalVisible(true)}
         />
 
         <QuickActions 
