@@ -32,7 +32,7 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
   const markedDates = useMemo(() => {
     const marks: any = {};
 
-    // 1. Add Predictions (Fertile Window & Ovulation) - Subtle background
+    // 1. Future Predictions (Fertility and Ovulation) View
     if (predictions?.current_cycle) {
       const fertileStart = parseISO(predictions.current_cycle.fertile_window.start);
       const fertileEnd = parseISO(predictions.current_cycle.fertile_window.end);
@@ -48,29 +48,14 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
           textColor: isOvulation ? Colors.fertility : Colors.text,
         };
       });
-
-      // Future Period Prediction - Gradient-like (using opacity)
-      if (predictions.next_period_date) {
-        const nextStart = parseISO(predictions.next_period_date);
-        const nextEnd = addDays(nextStart, averagePeriodLength - 1);
-        const nextRange = eachDayOfInterval({ start: nextStart, end: nextEnd });
-        
-        nextRange.forEach((day) => {
-          const dateStr = format(day, 'yyyy-MM-dd');
-          marks[dateStr] = {
-            color: Colors.period + '20', // Semi-transparent for prediction
-            textColor: Colors.period,
-          };
-        });
-      }
     }
     
-    // 2. Add Period Selection (Overrides predictions)
+    // 2. ACTIVE PERIOD SELECTION AND SMART PROJECTED SHADOW
     if (modalStart) {
       const startStr = format(modalStart, 'yyyy-MM-dd');
       
       if (modalEnd) {
-        const endStr = format(modalEnd, 'yyyy-MM-dd');
+        // Both start and end selected: Draw solid period block
         const range = eachDayOfInterval({
           start: modalStart < modalEnd ? modalStart : modalEnd,
           end: modalStart < modalEnd ? modalEnd : modalStart
@@ -78,23 +63,33 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
 
         range.forEach((day, index) => {
           const dateStr = format(day, 'yyyy-MM-dd');
-          const isFirst = index === 0;
-          const isLast = index === range.length - 1;
-          
           marks[dateStr] = {
-            startingDay: isFirst,
-            endingDay: isLast,
+            startingDay: index === 0,
+            endingDay: index === range.length - 1,
             color: Colors.period,
             textColor: Colors.card,
           };
         });
       } else {
+        // ONLY START SELECTED: Highlight start, project future days as shadow
         marks[startStr] = {
           startingDay: true,
-          endingDay: true,
+          endingDay: false,
           color: Colors.period,
           textColor: Colors.card,
         };
+
+        // Project days based on 'averagePeriodLength' (default 5) as semi-transparent
+        for (let i = 1; i < averagePeriodLength; i++) {
+          const projectedDay = addDays(modalStart, i);
+          const projectedDateStr = format(projectedDay, 'yyyy-MM-dd');
+          
+          marks[projectedDateStr] = {
+            color: Colors.period + '30', // 30% opacity shadow
+            textColor: Colors.period,
+            endingDay: i === averagePeriodLength - 1,
+          };
+        }
       }
     }
     
@@ -103,9 +98,9 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
 
   const selectionText = useMemo(() => {
     if (!modalStart) return 'Please select start date';
-    if (!modalEnd) return `${format(modalStart, 'MMM d')} - Select end date`;
+    if (!modalEnd) return `${format(modalStart, 'MMM d')} - Select end date (Estimated ~${averagePeriodLength} days)`;
     return `${format(modalStart, 'MMM d')} - ${format(modalEnd, 'MMM d')}`;
-  }, [modalStart, modalEnd]);
+  }, [modalStart, modalEnd, averagePeriodLength]);
 
   return (
     <Modal
@@ -129,9 +124,13 @@ export const PeriodModal: React.FC<PeriodModalProps> = ({
           <Calendar
             markingType={'period'}
             markedDates={markedDates}
-          onDayPress={(day: any) => {
-            onDatePress(new Date(day.timestamp));
-          }}
+            onDayPress={(day: any) => {
+              // day.dateString is in "YYYY-MM-DD" format.
+              // We parse it to create a clean Date object in local timezone.
+              const [year, month, dayNum] = day.dateString.split('-').map(Number);
+              const localDate = new Date(year, month - 1, dayNum);
+              onDatePress(localDate);
+            }}
             disableAllTouchEventsForDisabledDays={true}
             maxDate={new Date().toISOString().split('T')[0]}
             enableSwipeMonths={true}

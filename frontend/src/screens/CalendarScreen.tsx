@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, ActivityIndicator, Animated } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthStore } from '../store/useHealthStore';
 import { useShallow } from 'zustand/react/shallow';
-import { format, differenceInDays, parseISO, startOfMonth, endOfMonth, startOfDay } from 'date-fns';
+import { format, differenceInDays, parseISO, startOfMonth, endOfMonth, startOfDay, isSameDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { showToast } from '../utils/toast';
 import { registerForPushNotificationsAsync, schedulePeriodReminder } from '../utils/notifications';
@@ -127,8 +127,22 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
 
   const handleOpenPeriodModal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setModalStart(selectedDate);
-    setModalEnd(null);
+    
+    // If the clicked day is already within a logged period, load those dates for editing
+    const existingLog = cycleLogs.find((log: any) => {
+      const start = parseISO(log.start_date);
+      const end = log.end_date ? parseISO(log.end_date) : start;
+      return selectedDate >= start && selectedDate <= end;
+    });
+
+    if (existingLog) {
+      setModalStart(parseISO(existingLog.start_date));
+      setModalEnd(existingLog.end_date ? parseISO(existingLog.end_date) : null);
+    } else {
+      // IF NEW ENTRY: Open with null dates to prevent auto-selecting today
+      setModalStart(null);
+      setModalEnd(null);
+    }
     setIsPeriodModalVisible(true);
   };
 
@@ -136,11 +150,27 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
     const normalizedDay = startOfDay(day);
     Haptics.selectionAsync();
     
-    if (!modalStart || (modalStart && modalEnd)) {
+    if (!modalStart) {
+      // Step 1: If no start date selected, set clicked day as start
       setModalStart(normalizedDay);
       setModalEnd(null);
+    } else if (modalStart && !modalEnd) {
+      // Step 2: If start exists but end doesn't
+      if (normalizedDay < modalStart) {
+        // ERROR PREVENTION/FLEXIBILITY: If user clicks a date BEFORE start,
+        // update start date to that day! (Allows changing start date)
+        setModalStart(normalizedDay);
+      } else if (isSameDay(normalizedDay, modalStart)) {
+        // Reset selection if clicking the same day
+        setModalStart(null);
+      } else {
+        // Set as end date if clicking a date after start
+        setModalEnd(normalizedDay);
+      }
     } else {
-      setModalEnd(normalizedDay);
+      // Step 3: If both dates already selected, a new click resets and starts new selection
+      setModalStart(normalizedDay);
+      setModalEnd(null);
     }
   };
 

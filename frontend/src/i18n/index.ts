@@ -66,69 +66,6 @@ const resources = {
         luteal: "Luteal",
       }
     }
-  },
-  tr: {
-    translation: {
-      welcome: {
-        title_signup: "Hesabınızı Oluşturun",
-        title_signin: "Tekrar Hoş Geldiniz!",
-        subtitle_signup: "Bize katılın ve yolculuğunuza başlayın!",
-        subtitle_signin: "Sizi tekrar gördüğümüze sevindik.",
-        google: "Google ile Kaydol",
-        apple: "Apple ile Kaydol",
-        divider: "Veya e-posta ile kaydolun",
-        email_label: "E-posta",
-        password_label: "Şifre",
-        signup_btn: "Kaydol",
-        signin_btn: "Giriş Yap",
-        footer_signup: "Zaten bir hesabınız var mı? ",
-        footer_signin: "Hesabınız yok mu? ",
-      },
-      onboarding: {
-        age_title: "Ne zaman doğdunuz?",
-        age_subtitle: "Bunu sağlık içgörülerinizi ve tahminlerinizi kişiselleştirmek için kullanıyoruz.",
-        goal_title: "Hedefiniz nedir?",
-        goal_subtitle: "Gaia'yı kullanma temel nedeninizi seçin.",
-        continue: "Devam Et",
-        finish: "Kurulumu Tamamla",
-      },
-      dashboard: {
-        greeting: "Merhaba, {{name}}",
-        cycle_day: "Döngü Günü",
-        period_in: "Adet {{days}} gün içinde",
-        log_symptoms: "Belirti Kaydet",
-        view_calendar: "Takvimi Görüntüle",
-        insights: "Günlük İçgörüler",
-        save_entry: "Kaydet",
-        log_title: "{{date}} için Kayıt",
-        flow_title: "Akış Yoğunluğu",
-        symptoms_title: "Belirtiler ve Ruh Hali",
-      },
-      symptoms: {
-        cramps: "Kramplar",
-        headache: "Baş Ağrısı",
-        mood_swing: "Ruh Hali Değişimi",
-        bloating: "Şişkinlik",
-        fatigue: "Yorgunluk",
-        acne: "Akne",
-        tender_breasts: "Göğüs Hassasiyeti",
-        backache: "Sırt Ağrısı",
-        nausea: "Mide Bulantısı",
-        insomnia: "Uykusuzluk",
-      },
-      flow: {
-        none: "Yok",
-        light: "Hafif",
-        medium: "Orta",
-        heavy: "Yoğun",
-      },
-      phases: {
-        menstrual: "Menstrual",
-        follicular: "Foliküler",
-        ovulatory: "Ovülasyon",
-        luteal: "Luteal",
-      }
-    }
   }
 };
 
@@ -136,7 +73,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: Localization.getLocales()[0]?.languageCode || 'en', // More robust way to get language
+    lng: 'en', // Force English
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
