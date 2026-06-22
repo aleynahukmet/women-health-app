@@ -79,6 +79,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
       try {
         console.log('Fetching profile...');
         const profile = await healthApi.getProfile();
+        setLoading(false);
         console.log('Profile found, navigating to Dashboard');
         if (profile) {
           navigation.navigate('Dashboard');
@@ -87,16 +88,16 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
           navigation.navigate('Onboarding', { email, mode: 'social', provider: socialType });
         }
       } catch (e) {
+        setLoading(false);
         console.log('Profile not found or error, navigating to Onboarding');
         navigation.navigate('Onboarding', { email, mode: 'social', provider: socialType });
       }
       
       showToast.success('Welcome!');
     } catch (error: any) {
+      setLoading(false);
       console.error('Social login error:', error.response?.data || error.message);
       showToast.error('Social login failed. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 

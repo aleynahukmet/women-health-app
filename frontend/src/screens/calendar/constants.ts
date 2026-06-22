@@ -43,8 +43,8 @@ export const SYMPTOMS_BY_CATEGORY: Record<string, any[]> = {
     { id: 'cravings_salty', label: 'Salty Cravings', icon: '🥨' },
   ],
   sex: [
-    { id: 'unprotected', label: 'Unprotected', icon: '🔓' },
-    { id: 'protected', label: 'Protected', icon: '🔒' },
+    { id: 'unprotected', label: 'Unprotected', icon: '💓' },
+    { id: 'protected', label: 'Protected', icon: '🛡️' },
     { id: 'no_sex', label: 'No Sex', icon: '🚫' },
     { id: 'high_libido', label: 'High Libido', icon: '🔥' },
   ],

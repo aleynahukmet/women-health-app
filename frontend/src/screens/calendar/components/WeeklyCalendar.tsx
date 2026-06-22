@@ -99,8 +99,8 @@ const styles = StyleSheet.create({
   },
   dayName: {
     fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: '600',
+    color: Colors.text, // Darkened for better visibility
+    fontWeight: '700', // Increased weight
     marginBottom: 4,
     textTransform: 'uppercase',
   },

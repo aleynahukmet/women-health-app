@@ -152,9 +152,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   progressBarBg: {
-    height: 8,
+    height: 12,
     backgroundColor: Colors.border,
-    borderRadius: 4,
+    borderRadius: 6,
     overflow: 'hidden',
   },
   progressBarFill: {

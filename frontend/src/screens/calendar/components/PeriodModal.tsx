@@ -210,9 +210,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.period,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   closeButton: {
     width: 32,

@@ -36,7 +36,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   error: null,
 
   fetchProfile: async () => {
-    set({ loading: true, error: null });
+    if (!get().loading) set({ loading: true, error: null });
     try {
       const profile = await healthApi.getProfile();
       set({ profile, loading: false });
@@ -47,7 +47,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   },
 
   fetchPredictions: async () => {
-    set({ loading: true, error: null });
+    if (!get().loading) set({ loading: true, error: null });
     try {
       const predictions = await healthApi.getPredictions();
       set({ predictions, loading: false });
@@ -58,7 +58,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   },
 
   fetchSymptoms: async () => {
-    set({ loading: true, error: null });
+    if (!get().loading) set({ loading: true, error: null });
     try {
       const symptoms = await healthApi.getSymptoms();
       const history = { ...get().symptomHistory };
@@ -73,7 +73,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   },
 
   fetchHistory: async (start, end) => {
-    set({ loading: true, error: null });
+    if (!get().loading) set({ loading: true, error: null });
     try {
       const historyData = await healthApi.getHistory(start, end);
       const history = { ...get().symptomHistory };
@@ -88,7 +88,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   },
 
   fetchCycleLogs: async () => {
-    set({ loading: true, error: null });
+    if (!get().loading) set({ loading: true, error: null });
     try {
       const cycleLogs = await healthApi.getCycleLogs();
       set({ cycleLogs, loading: false });

@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: Colors.text,
-    marginBottom: 14,
+    marginBottom: 8,
     letterSpacing: 0.3,
   },
   grid: {

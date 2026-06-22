@@ -25,31 +25,17 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { PHASE_INSIGHTS } from './calendar/constants';
 
 export default function CalendarScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Dashboard'>) {
-  const { 
-    profile, 
-    predictions, 
-    cycleLogs,
-    symptomHistory,
-    loading, 
-    fetchProfile, 
-    fetchPredictions, 
-    fetchCycleLogs,
-    fetchHistory,
-    upsertSymptomLog,
-    logCycle
-  } = useHealthStore(useShallow((state) => ({
-    profile: state.profile,
-    predictions: state.predictions,
-    cycleLogs: state.cycleLogs,
-    symptomHistory: state.symptomHistory,
-    loading: state.loading,
-    fetchProfile: state.fetchProfile,
-    fetchPredictions: state.fetchPredictions,
-    fetchCycleLogs: state.fetchCycleLogs,
-    fetchHistory: state.fetchHistory,
-    upsertSymptomLog: state.upsertSymptomLog,
-    logCycle: state.logCycle,
-  })));
+  const profile = useHealthStore((state) => state.profile);
+  const predictions = useHealthStore((state) => state.predictions);
+  const cycleLogs = useHealthStore((state) => state.cycleLogs);
+  const symptomHistory = useHealthStore((state) => state.symptomHistory);
+  const loading = useHealthStore((state) => state.loading);
+  const fetchProfile = useHealthStore((state) => state.fetchProfile);
+  const fetchPredictions = useHealthStore((state) => state.fetchPredictions);
+  const fetchCycleLogs = useHealthStore((state) => state.fetchCycleLogs);
+  const fetchHistory = useHealthStore((state) => state.fetchHistory);
+  const upsertSymptomLog = useHealthStore((state) => state.upsertSymptomLog);
+  const logCycle = useHealthStore((state) => state.logCycle);
 
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
   const [viewDate, setViewDate] = useState(startOfDay(new Date()));
@@ -96,17 +82,18 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
 
   useEffect(() => {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    if (symptomHistory[dateStr]) {
-      setCurrentLog(symptomHistory[dateStr]);
-    } else {
-      setCurrentLog({
-        flow_level: 0,
-        pain_metrics: {},
-        mood_metrics: [],
-        lifestyle_metrics: {},
-        sex_logged: {},
-      });
-    }
+    const log = symptomHistory[dateStr] || {
+      flow_level: 0,
+      pain_metrics: {},
+      mood_metrics: [],
+      lifestyle_metrics: {},
+      sex_logged: {},
+    };
+    
+    const timer = setTimeout(() => {
+      setCurrentLog(log);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [selectedDate, symptomHistory]);
 
   const handleOpenBottomSheet = useCallback(() => {
@@ -203,41 +190,60 @@ export default function CalendarScreen({ navigation }: NativeStackScreenProps<Ro
   const handleToggleSymptom = (categoryId: string, symptomId: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
-    setCurrentLog((prevLog: any) => {
-      let nextLog = { ...prevLog };
-      switch (categoryId) {
-        case 'flow':
-          nextLog = { ...prevLog, flow_level: symptomId };
-          break;
-        case 'pain': {
-          const currentLevel = prevLog.pain_metrics[symptomId] || 0;
-          const nextLevel = (currentLevel + 1) % 4;
-          const newPainMetrics = { ...prevLog.pain_metrics };
-          if (nextLevel === 0) delete newPainMetrics[symptomId];
-          else newPainMetrics[symptomId] = nextLevel;
-          nextLog = { ...prevLog, pain_metrics: newPainMetrics };
-          break;
-        }
-        case 'mood':
-          nextLog = {
-            ...prevLog,
-            mood_metrics: prevLog.mood_metrics.includes(symptomId)
-              ? prevLog.mood_metrics.filter((id: any) => id !== symptomId)
-              : [...prevLog.mood_metrics, symptomId]
-          };
-          break;
-        default:
-          break;
+    const prevLog = currentLog;
+    let nextLog = { ...prevLog };
+    switch (categoryId) {
+      case 'flow':
+        nextLog = { ...prevLog, flow_level: symptomId };
+        break;
+      case 'pain': {
+        const currentLevel = prevLog.pain_metrics[symptomId] || 0;
+        const nextLevel = (currentLevel + 1) % 4;
+        const newPainMetrics = { ...prevLog.pain_metrics };
+        if (nextLevel === 0) delete newPainMetrics[symptomId];
+        else newPainMetrics[symptomId] = nextLevel;
+        nextLog = { ...prevLog, pain_metrics: newPainMetrics };
+        break;
       }
-      
-      // Auto-save logic
-      upsertSymptomLog({
-        log_date: format(selectedDate, 'yyyy-MM-dd'),
-        ...nextLog
-      }).catch(console.error);
-      
-      return nextLog;
-    });
+      case 'mood':
+        nextLog = {
+          ...prevLog,
+          mood_metrics: prevLog.mood_metrics.includes(symptomId)
+            ? prevLog.mood_metrics.filter((id: any) => id !== symptomId)
+            : [...prevLog.mood_metrics, symptomId]
+        };
+        break;
+      case 'energy':
+      case 'body': {
+        const currentLevel = prevLog.lifestyle_metrics[symptomId] || 0;
+        const nextLevel = (currentLevel + 1) % 4;
+        const newLifestyleMetrics = { ...prevLog.lifestyle_metrics };
+        if (nextLevel === 0) delete newLifestyleMetrics[symptomId];
+        else newLifestyleMetrics[symptomId] = nextLevel;
+        nextLog = { ...prevLog, lifestyle_metrics: newLifestyleMetrics };
+        break;
+      }
+      case 'sex': {
+        const newSexLogged = { ...prevLog.sex_logged };
+        if (newSexLogged[symptomId]) {
+          delete newSexLogged[symptomId];
+        } else {
+          newSexLogged[symptomId] = true;
+        }
+        nextLog = { ...prevLog, sex_logged: newSexLogged };
+        break;
+      }
+      default:
+        break;
+    }
+    
+    setCurrentLog(nextLog);
+    
+    // Auto-save logic - moved outside of the state update to avoid side effects during render/update
+    upsertSymptomLog({
+      log_date: format(selectedDate, 'yyyy-MM-dd'),
+      ...nextLog
+    }).catch(console.error);
   };
 
   const handleUpdateNotes = (notes: string) => {

@@ -62,7 +62,7 @@ const SymptomCard: React.FC<SymptomCardProps> = ({
           ))}
         </View>
       )}
-      {isSelected && activeCategory !== 'pain' && intensity === 0 && (
+      {isSelected && (
         <View style={[styles.checkBadgeSmall, { backgroundColor: Colors.primary }]}>
           <Check size={10} color={Colors.card} />
         </View>
@@ -120,8 +120,12 @@ export const SymptomBottomSheet = forwardRef<BottomSheet, SymptomBottomSheetProp
         </View>
         
         {/* Category Tabs */}
-        <View style={styles.categoryTabs}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.categoryTabsContainer}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryTabs}
+          >
             {SYMPTOM_CATEGORIES.map((cat) => (
               <TouchableOpacity 
                 key={cat.id}
@@ -138,6 +142,9 @@ export const SymptomBottomSheet = forwardRef<BottomSheet, SymptomBottomSheetProp
               </TouchableOpacity>
             ))}
           </ScrollView>
+          {/* Edge Fades */}
+          <View style={[styles.edgeFade, styles.edgeFadeLeft]} pointerEvents="none" />
+          <View style={[styles.edgeFade, styles.edgeFadeRight]} pointerEvents="none" />
         </View>
 
         <ScrollView style={styles.categoryContent} showsVerticalScrollIndicator={false}>
@@ -147,20 +154,17 @@ export const SymptomBottomSheet = forwardRef<BottomSheet, SymptomBottomSheetProp
               let intensity = 0;
 
               if (activeCategory === 'flow') {
-                isSelected = currentLog.flow_level === item.id;
+                isSelected = currentLog.flow_level === item.id && item.id !== 0;
+                // Map flow levels 1-4 to dots 1-3 (approximate) or just show as selected
+                if (isSelected) intensity = Math.min(item.id, 3);
               } else if (activeCategory === 'pain') {
                 intensity = currentLog.pain_metrics[item.id] || 0;
                 isSelected = intensity > 0;
               } else if (activeCategory === 'mood') {
                 isSelected = currentLog.mood_metrics.includes(item.id);
               } else if (activeCategory === 'energy' || activeCategory === 'body') {
-                const val = currentLog.lifestyle_metrics[item.id];
-                if (typeof val === 'number') {
-                  intensity = val;
-                  isSelected = val > 0;
-                } else {
-                  isSelected = !!val;
-                }
+                intensity = currentLog.lifestyle_metrics[item.id] || 0;
+                isSelected = intensity > 0;
               } else if (activeCategory === 'sex') {
                 isSelected = !!currentLog.sex_logged[item.id];
               }
@@ -231,11 +235,30 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.card,
   },
-  categoryTabs: {
+  categoryTabsContainer: {
+    position: 'relative',
     marginBottom: 24,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     paddingBottom: 12,
+  },
+  categoryTabs: {
+    paddingHorizontal: 8,
+  },
+  edgeFade: {
+    position: 'absolute',
+    top: 0,
+    bottom: 12,
+    width: 20,
+    zIndex: 1,
+  },
+  edgeFadeLeft: {
+    left: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)', // Simple fade
+  },
+  edgeFadeRight: {
+    right: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)', // Simple fade
   },
   categoryTab: {
     alignItems: 'center',

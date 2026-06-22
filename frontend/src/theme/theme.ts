@@ -4,27 +4,27 @@ export const Colors = {
   card: '#FFFFFF',
   
   // Phase Colors (Terracotta & Earth Palette)
-  menstrual: '#E07A5F',   // Soft Terracotta
+  menstrual: '#D66D75',   // Modern Rose / Berry
   follicular: '#F2CC8F',  // Peach / Sand
-  ovulation: '#81B29A',   // Sage / Soft Teal
+  ovulation: '#94A684',   // Sage Green
   luteal: '#3D405B',      // Earthy Navy / Dark Slate
 
   // Aliases for clarity
-  period: '#E07A5F',
-  fertility: '#81B29A',
-  ovulatory: '#81B29A',
+  period: '#D66D75',
+  fertility: '#94A684',
+  ovulatory: '#94A684',
   
   // Text
   text: '#3D405B',
-  textSecondary: '#5F6382',
+  textSecondary: '#4A4E69',
   textLight: '#A8ABB3',
   
   // UI Elements
-  primary: '#E07A5F',     // Terracotta as primary
+  primary: '#D66D75',     // Rose as primary
   accent: '#F2CC8F',      // Peach as accent
   border: '#F4F1DE',
-  error: '#E07A5F',
-  success: '#81B29A',
+  error: '#D66D75',
+  success: '#94A684',
   
   // Discreet Palette (for neutral mode)
   neutral: '#F4F1DE',
